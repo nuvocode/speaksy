@@ -1,0 +1,79 @@
+/**
+ * Design Tokens — LinguaAI
+ * All colors, typography, spacing, shadows, and transitions
+ * are defined here as CSS custom properties. No component
+ * should use hardcoded values.
+ */
+
+:root {
+  /* ── Colors ────────────────────────────────────── */
+  --color-bg: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-primary: #1A1A2E;
+  --color-accent: #6C63FF;
+  --color-ai: #00C896;
+  --color-user: #FF6B6B;
+  --color-muted: #8E8E9A;
+  --color-border: #EBEBF0;
+
+  /* Gradients */
+  --gradient-user: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --gradient-ai: linear-gradient(135deg, #00C896, #00E5B0);
+
+  /* Status */
+  --color-success: #00C896;
+  --color-warning: #F5A623;
+  --color-error: #FF4757;
+
+  /* ── Typography ────────────────────────────────── */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 2rem;      /* 32px */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  /* ── Spacing ───────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Border Radius ─────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ───────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(26, 26, 46, 0.06), 0 1px 2px rgba(26, 26, 46, 0.04);
+  --shadow-md: 0 4px 16px rgba(26, 26, 46, 0.08), 0 2px 6px rgba(26, 26, 46, 0.04);
+  --shadow-lg: 0 12px 40px rgba(26, 26, 46, 0.12);
+
+  /* ── Transitions ───────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 500ms;
+  --duration-slower: 800ms;
+}

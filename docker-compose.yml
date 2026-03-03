@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_WS_URL=ws://localhost:3001/ws
+      - VITE_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    env_file: .env
+    environment:
+      - KOKORO_URL=http://kokoro:8880
+    depends_on:
+      - kokoro
+
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.2.2
+    ports:
+      - "8880:8880"
+    # For GPU version, use:
+    # image: ghcr.io/remsky/kokoro-fastapi-gpu:v0.2.2
