@@ -129,3 +129,38 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+/* ── Fade Out Up — view exit ─────────────────────── */
+@keyframes fadeOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* ── Card Select Bounce ──────────────────────────── */
+@keyframes cardSelectBounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.97); }
+  60%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* ── View Transition Utility Classes ─────────────── */
+.view-entering {
+  animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+}
+
+.view-leaving {
+  animation: fadeOutUp var(--duration-slow) var(--ease-out) both;
+}
+
+/* ── Staggered Fade In Up (for cards) ────────────── */
+.stagger-0 { animation-delay: 0ms; }
+.stagger-1 { animation-delay: 80ms; }
+.stagger-2 { animation-delay: 160ms; }
+.stagger-3 { animation-delay: 240ms; }

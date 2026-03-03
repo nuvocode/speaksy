@@ -3,7 +3,7 @@
  * WebSocket message handler for LinguaAI.
  *
  * Message types (Client → Server):
- *   { type: 'message', text: string, sessionId: string }
+ *   { type: 'message', text: string, sessionId: string, modeConfig?: ModeConfig }
  *   { type: 'clear', sessionId: string }
  *   { type: 'settings', provider: string, voice: string }
  *
@@ -108,13 +108,20 @@ async function sendTTSAudio(ws, text, voice) {
  * @param {import('ws').WebSocket} ws
  * @param {string} text — user's message
  * @param {string} sessionId
+ * @param {Object} [modeConfig] — mode configuration from client
  */
-async function handleMessage(ws, text, sessionId) {
+async function handleMessage(ws, text, sessionId, modeConfig) {
   try {
-    /* Ensure conversation has a system prompt */
+    /* Ensure conversation has a system prompt (rebuilt per message for script position tracking) */
     const history = getHistory(sessionId);
     if (history.length === 0) {
-      addMessage(sessionId, 'system', buildSystemPrompt());
+      addMessage(sessionId, 'system', buildSystemPrompt(modeConfig));
+    } else if (modeConfig?.type === 'script') {
+      /* Update system prompt with current script position */
+      const systemIdx = history.findIndex((m) => m.role === 'system');
+      if (systemIdx >= 0) {
+        history[systemIdx] = { role: 'system', content: buildSystemPrompt(modeConfig) };
+      }
     }
 
     /* Add user message to history */
@@ -170,7 +177,7 @@ export function initWebSocket(wss) {
             send(ws, { type: 'error', message: 'Missing "text" or "sessionId".' });
             return;
           }
-          handleMessage(ws, data.text, data.sessionId);
+          handleMessage(ws, data.text, data.sessionId, data.modeConfig);
           break;
 
         case 'clear':

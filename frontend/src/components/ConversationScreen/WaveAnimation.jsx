@@ -29,12 +29,41 @@ const BAR_CORNER_RADIUS = 2;
 const PHASE_SPEED_IDLE = 0.015;
 const PHASE_SPEED_ACTIVE = 0.04;
 
-/** Color config per mode */
+/** Color config per mode — fallback values, overridden by CSS tokens */
 const MODE_COLORS = {
   idle: { start: '#EBEBF0', end: '#D1D1DB' },
   user: { start: '#FF6B6B', end: '#FF8E53' },
   ai: { start: '#00C896', end: '#00E5B0' },
 };
+
+/**
+ * Read a CSS custom property value from :root.
+ * @param {string} prop — e.g. '--color-ai'
+ * @returns {string} trimmed value or empty string
+ */
+function getCSSVar(prop) {
+  return getComputedStyle(document.documentElement).getPropertyValue(prop).trim();
+}
+
+/**
+ * Build mode colors from CSS tokens (dynamic — respects dark mode).
+ * Falls back to hardcoded MODE_COLORS if CSS vars are unavailable.
+ * @returns {Object}
+ */
+function getDynamicModeColors() {
+  const border = getCSSVar('--color-border') || MODE_COLORS.idle.start;
+  const muted = getCSSVar('--color-muted') || MODE_COLORS.idle.end;
+  const user = getCSSVar('--color-user') || MODE_COLORS.user.start;
+  const userEnd = getCSSVar('--color-warning') || MODE_COLORS.user.end;
+  const ai = getCSSVar('--color-ai') || MODE_COLORS.ai.start;
+  const aiEnd = getCSSVar('--color-success') || MODE_COLORS.ai.end;
+
+  return {
+    idle: { start: border, end: muted },
+    user: { start: user, end: userEnd },
+    ai: { start: ai, end: aiEnd },
+  };
+}
 
 /**
  * Linearly interpolate between two hex colors.
@@ -109,8 +138,9 @@ export default function WaveAnimation({ isActive = false, audioLevel = 0, mode =
     const barCount = effectiveMode === 'idle' ? IDLE_BAR_COUNT : ACTIVE_BAR_COUNT;
     const phaseSpeed = effectiveMode === 'idle' ? PHASE_SPEED_IDLE : PHASE_SPEED_ACTIVE;
 
-    /* Smooth color transition */
-    const targetColors = MODE_COLORS[effectiveMode] || MODE_COLORS.idle;
+    /* Smooth color transition — read dynamic colors from CSS tokens */
+    const dynamicColors = getDynamicModeColors();
+    const targetColors = dynamicColors[effectiveMode] || dynamicColors.idle;
     currentColorRef.current.start = lerpColor(currentColorRef.current.start, targetColors.start, 0.08);
     currentColorRef.current.end = lerpColor(currentColorRef.current.end, targetColors.end, 0.08);
 

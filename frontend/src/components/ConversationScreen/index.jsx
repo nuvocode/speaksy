@@ -3,21 +3,24 @@
  * Main conversation screen — the primary view of LinguaAI.
  *
  * Layout (top to bottom):
- *   1. Header bar — Logo (left), StatusIndicator (center), Settings icon (right)
- *   2. Message area — scrollable, messages stack from bottom
- *   3. WaveAnimation — active during speech
- *   4. MicButton — centered at bottom
+ *   1. Header bar — Back (left), Mode badge (center), Settings/Theme (right)
+ *   2. ScriptPrompt (only in script mode)
+ *   3. Message area — scrollable, messages stack from bottom
+ *   4. WaveAnimation — active during speech
+ *   5. MicButton — centered at bottom
  */
 
-import React, { useRef, useEffect } from 'react';
-import { Settings as SettingsIcon, Trash2 } from 'lucide-react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Settings as SettingsIcon, Trash2, ChevronLeft } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import useConversation from '../../hooks/useConversation.js';
 import Logo from '../shared/Logo.jsx';
 import StatusIndicator from '../shared/StatusIndicator.jsx';
+import ThemeToggle from '../shared/ThemeToggle.jsx';
 import MessageBubble from './MessageBubble.jsx';
 import WaveAnimation from './WaveAnimation.jsx';
 import MicButton from './MicButton.jsx';
+import ScriptPrompt from './ScriptPrompt.jsx';
 
 const styles = {
   container: {
@@ -65,6 +68,34 @@ const styles = {
     cursor: 'pointer',
     color: 'var(--color-muted)',
     transition: `all var(--duration-fast) var(--ease-out)`,
+  },
+  backButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-1)',
+    padding: 'var(--space-1) var(--space-2)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: 'var(--color-muted)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--weight-medium)',
+    transition: 'all var(--duration-fast) var(--ease-out)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  modeBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 'var(--space-1)',
+    padding: 'var(--space-1) var(--space-3)',
+    borderRadius: 'var(--radius-full)',
+    backgroundColor: 'var(--color-surface-2)',
+    border: '1px solid var(--color-border)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-xs)',
+    fontWeight: 'var(--weight-medium)',
+    color: 'var(--color-primary)',
   },
 
   /* ── Messages ──────────────────────────────── */
@@ -125,6 +156,8 @@ export default function ConversationScreen() {
   const isAISpeaking = useAppStore((s) => s.isAISpeaking);
   const audioLevel = useAppStore((s) => s.audioLevel);
   const toggleSettings = useAppStore((s) => s.toggleSettings);
+  const activeMode = useAppStore((s) => s.activeMode);
+  const endSession = useAppStore((s) => s.endSession);
 
   const { clearConversation, isAIThinking } = useConversation();
   const scrollAnchorRef = useRef(null);
@@ -133,6 +166,15 @@ export default function ConversationScreen() {
   useEffect(() => {
     scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  /** Handle back button with confirmation */
+  const handleBack = useCallback(() => {
+    if (messages.length > 0) {
+      const confirmed = window.confirm('Are you sure? Your conversation progress will be lost.');
+      if (!confirmed) return;
+    }
+    endSession();
+  }, [messages.length, endSession]);
 
   /* Determine wave animation mode */
   let waveMode = 'idle';
@@ -149,17 +191,46 @@ export default function ConversationScreen() {
   }
 
   const hasMessages = messages.length > 0;
+  const isScriptMode = activeMode?.type === 'script';
+
+  /** Build the mode badge text */
+  const modeBadgeText = (() => {
+    if (!activeMode) return '';
+    if (activeMode.type === 'freestyle') return '💬 Free Style';
+    if (activeMode.type === 'topic') {
+      const { topic, subtopic } = activeMode.topicConfig || {};
+      return `📚 Topic: ${topic || ''}${subtopic ? ` · ${subtopic}` : ''}`;
+    }
+    if (activeMode.type === 'script') {
+      return `📄 Script: ${activeMode.scriptConfig?.title || ''}`;
+    }
+    return activeMode.label;
+  })();
 
   return (
     <div style={styles.container}>
       {/* ── Header ─────────────────────────────── */}
       <header style={{ ...styles.header, position: 'relative' }}>
         <div style={styles.headerLeft}>
-          <Logo />
+          <button
+            style={styles.backButton}
+            onClick={handleBack}
+            aria-label="Back to mode selection"
+            title="Back"
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-muted)'; }}
+          >
+            <ChevronLeft size={18} />
+            <span>Back</span>
+          </button>
         </div>
 
         <div style={styles.headerCenter}>
-          <StatusIndicator status={wsStatus} />
+          {activeMode ? (
+            <span style={styles.modeBadge}>{modeBadgeText}</span>
+          ) : (
+            <StatusIndicator status={wsStatus} />
+          )}
         </div>
 
         <div style={styles.headerRight}>
@@ -173,6 +244,7 @@ export default function ConversationScreen() {
               <Trash2 size={18} />
             </button>
           )}
+          <ThemeToggle />
           <button
             style={styles.iconButton}
             onClick={toggleSettings}
@@ -183,6 +255,9 @@ export default function ConversationScreen() {
           </button>
         </div>
       </header>
+
+      {/* ── Script Prompt (script mode only) ──── */}
+      {isScriptMode && <ScriptPrompt />}
 
       {/* ── Messages ───────────────────────────── */}
       <div style={styles.messagesContainer}>

@@ -22,6 +22,10 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+html[data-theme-loaded] {
+  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
+}
+
 body {
   font-family: var(--font-ui);
   font-size: var(--text-base);

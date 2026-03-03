@@ -21,6 +21,7 @@ import useAudio from './useAudio.js';
 export default function useConversation() {
   const wsStatus = useAppStore((s) => s.wsStatus);
   const sessionId = useAppStore((s) => s.sessionId);
+  const activeMode = useAppStore((s) => s.activeMode);
   const addMessage = useAppStore((s) => s.addMessage);
   const updateLastMessage = useAppStore((s) => s.updateLastMessage);
   const finalizeLastMessage = useAppStore((s) => s.finalizeLastMessage);
@@ -95,10 +96,10 @@ export default function useConversation() {
       setIsAIThinking(true);
       streamingRef.current = false;
 
-      /* Send via WebSocket */
-      send('message', { text: text.trim(), sessionId });
+      /* Send via WebSocket (include modeConfig for prompt building) */
+      send('message', { text: text.trim(), sessionId, modeConfig: activeMode || undefined });
     },
-    [isConnected, addMessage, sessionId]
+    [isConnected, addMessage, sessionId, activeMode]
   );
 
   /**
