@@ -4,6 +4,11 @@ Speaksy is a local-first, open-source speaking practice app. It lets you talk to
 
 The project was built around one idea: make speaking practice possible with local tools such as Ollama or LM Studio, while keeping the setup approachable for regular development and open-source contributions.
 
+## Screenshot
+
+<img src="sample/welcome.png" alt="Speaksy screenshot" width="600" />
+<img src="sample/conversation.png" alt="Speaksy screenshot" width="600" />
+
 ## What Speaksy does
 
 - Voice-first speaking practice in the browser
