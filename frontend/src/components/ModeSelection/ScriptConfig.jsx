@@ -41,6 +41,8 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-2)',
+    maxHeight: '340px',
+    overflowY: 'auto',
   },
   scriptCard: {
     display: 'flex',

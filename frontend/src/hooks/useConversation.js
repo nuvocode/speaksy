@@ -48,6 +48,7 @@ export default function useConversation() {
   const activeMode = useAppStore((s) => s.activeMode);
   const addMessage = useAppStore((s) => s.addMessage);
   const clearMessages = useAppStore((s) => s.clearMessages);
+  const advanceScriptLine = useAppStore((s) => s.advanceScriptLine);
 
   const [assistantPhase, setAssistantPhase] = useState(null);
   const { playAudio } = useAudio();
@@ -56,6 +57,7 @@ export default function useConversation() {
   const pendingResponseRef = useRef('');
   const revealTimerRef = useRef(null);
   const awaitingAudioRef = useRef(false);
+  const scriptAutoStartedRef = useRef(false);
   const assistantCopyRef = useRef({
     thinking: THINKING_MESSAGES[0],
     preparingSpeech: PREPARING_SPEECH_MESSAGES[0],
@@ -111,9 +113,18 @@ export default function useConversation() {
           setAssistantPhase((currentPhase) => currentPhase || 'thinking');
           break;
 
-        case 'done':
+        case 'done': {
           if (typeof data.fullText === 'string') {
             pendingResponseRef.current = data.fullText;
+          }
+
+          /* Advance script past the AI line that was just delivered */
+          const modeAtDone = useAppStore.getState().activeMode;
+          if (modeAtDone?.type === 'script' && modeAtDone.scriptConfig) {
+            const { lines, currentLine } = modeAtDone.scriptConfig;
+            if (lines?.[currentLine]?.role === 'ai') {
+              advanceScriptLine();
+            }
           }
 
           if (pendingResponseRef.current.trim()) {
@@ -127,6 +138,7 @@ export default function useConversation() {
             resetPendingResponse();
           }
           break;
+        }
 
         case 'audio':
           if (!awaitingAudioRef.current) {
@@ -191,8 +203,16 @@ export default function useConversation() {
 
       /* Send via WebSocket (include modeConfig for prompt building) */
       send('message', { text: text.trim(), sessionId, modeConfig: activeMode || undefined });
+
+      /* Advance script past the user line that was just spoken */
+      if (activeMode?.type === 'script' && activeMode.scriptConfig) {
+        const { lines, currentLine } = activeMode.scriptConfig;
+        if (lines?.[currentLine]?.role === 'user') {
+          advanceScriptLine();
+        }
+      }
     },
-    [isConnected, addMessage, sessionId, activeMode, clearRevealTimer]
+    [isConnected, addMessage, sessionId, activeMode, clearRevealTimer, advanceScriptLine]
   );
 
   /**
@@ -203,6 +223,31 @@ export default function useConversation() {
     clearMessages();
     send('clear', { sessionId });
   }, [clearMessages, sessionId, resetPendingResponse]);
+
+  /* Auto-start: when script begins with an AI line, trigger the AI automatically */
+  useEffect(() => {
+    if (
+      activeMode?.type === 'script' &&
+      activeMode.scriptConfig &&
+      isConnected &&
+      !scriptAutoStartedRef.current
+    ) {
+      const firstLine = activeMode.scriptConfig.lines?.[0];
+      if (firstLine?.role === 'ai') {
+        scriptAutoStartedRef.current = true;
+        assistantCopyRef.current = {
+          thinking: pickRandomMessage(THINKING_MESSAGES),
+          preparingSpeech: pickRandomMessage(PREPARING_SPEECH_MESSAGES),
+        };
+        setAssistantPhase('thinking');
+        send('message', {
+          text: '(Please deliver your first line from the script to begin the conversation.)',
+          sessionId,
+          modeConfig: activeMode,
+        });
+      }
+    }
+  }, [activeMode, isConnected, sessionId]);
 
   return {
     sendMessage,
