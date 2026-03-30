@@ -11,6 +11,7 @@
  *   { type: 'chunk', text: string }          — streaming AI chunk
  *   { type: 'done', fullText: string }       — stream complete
  *   { type: 'audio', data: base64string }    — TTS audio data
+ *   { type: 'audio-unavailable' }            — TTS failed, show text fallback
  *   { type: 'error', message: string }       — error notification
  */
 
@@ -91,7 +92,8 @@ async function sendTTSAudio(ws, text, voice) {
 
     if (!response.ok) {
       console.error(`[ws/tts] Kokoro error: ${response.status}`);
-      return; /* Graceful degradation — just skip audio */
+      send(ws, { type: 'audio-unavailable' });
+      return;
     }
 
     const buffer = await response.arrayBuffer();
@@ -99,7 +101,7 @@ async function sendTTSAudio(ws, text, voice) {
     send(ws, { type: 'audio', data: base64 });
   } catch (error) {
     console.error('[ws/tts] TTS failed (graceful degradation):', error.message);
-    /* Don't send error to client — text response already delivered */
+    send(ws, { type: 'audio-unavailable' });
   }
 }
 

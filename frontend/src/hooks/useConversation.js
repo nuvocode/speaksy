@@ -1,12 +1,12 @@
 /**
  * @module hooks/useConversation
  * Manages WebSocket message flow for the conversation:
- *   - Receives 'chunk' messages and appends to streaming AI message
- *   - Receives 'done' and finalises the message
- *   - Receives 'audio' and delegates to useAudio
+ *   - Buffers streamed AI text until speech is ready
+ *   - Reveals the final text when audio arrives (or TTS falls back)
+ *   - Delegates playback to useAudio
  *   - Provides sendMessage() for outgoing user messages
  *
- * @returns {{ sendMessage, isConnected, isAIThinking }}
+ * @returns {{ sendMessage, clearConversation, isConnected, isAIThinking, isPreparingSpeech, assistantStatus }}
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -14,26 +14,91 @@ import useAppStore from '../store/appStore.js';
 import { send, onMessage } from '../lib/wsClient.js';
 import useAudio from './useAudio.js';
 
+const AUDIO_REVEAL_FALLBACK_MS = 15000;
+const THINKING_MESSAGES = [
+  'Thinking...',
+  'Putting the answer together...',
+  'One moment, I am framing it clearly...',
+];
+const PREPARING_SPEECH_MESSAGES = [
+  'Voice is getting ready...',
+  'Turning that into speech...',
+  'Almost there, preparing the audio...',
+];
+
+function pickRandomMessage(messages) {
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
 /**
  * Custom hook for conversation management.
- * @returns {{ sendMessage: function(string): void, isConnected: boolean, isAIThinking: boolean }}
+ * Should be mounted once per active conversation screen.
+ * @returns {{
+ *   sendMessage: function(string): void,
+ *   clearConversation: function(): void,
+ *   isConnected: boolean,
+ *   isAIThinking: boolean,
+ *   isPreparingSpeech: boolean,
+ *   assistantStatus: string
+ * }}
  */
 export default function useConversation() {
   const wsStatus = useAppStore((s) => s.wsStatus);
   const sessionId = useAppStore((s) => s.sessionId);
   const activeMode = useAppStore((s) => s.activeMode);
   const addMessage = useAppStore((s) => s.addMessage);
-  const updateLastMessage = useAppStore((s) => s.updateLastMessage);
-  const finalizeLastMessage = useAppStore((s) => s.finalizeLastMessage);
   const clearMessages = useAppStore((s) => s.clearMessages);
 
-  const [isAIThinking, setIsAIThinking] = useState(false);
+  const [assistantPhase, setAssistantPhase] = useState(null);
   const { playAudio } = useAudio();
 
   const isConnected = wsStatus === 'connected';
+  const pendingResponseRef = useRef('');
+  const revealTimerRef = useRef(null);
+  const awaitingAudioRef = useRef(false);
+  const assistantCopyRef = useRef({
+    thinking: THINKING_MESSAGES[0],
+    preparingSpeech: PREPARING_SPEECH_MESSAGES[0],
+  });
 
-  /* Track whether we are currently streaming an AI response */
-  const streamingRef = useRef(false);
+  const isAIThinking = assistantPhase === 'thinking';
+  const isPreparingSpeech = assistantPhase === 'preparing-speech';
+  const assistantStatus = isAIThinking
+    ? assistantCopyRef.current.thinking
+    : isPreparingSpeech
+      ? assistantCopyRef.current.preparingSpeech
+      : '';
+
+  const clearRevealTimer = useCallback(() => {
+    if (revealTimerRef.current) {
+      clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+  }, []);
+
+  const resetPendingResponse = useCallback(() => {
+    clearRevealTimer();
+    awaitingAudioRef.current = false;
+    pendingResponseRef.current = '';
+    setAssistantPhase(null);
+  }, [clearRevealTimer]);
+
+  const revealPendingResponse = useCallback(
+    (text = pendingResponseRef.current, { preservePhase = false } = {}) => {
+      const visibleText = text.trim();
+      clearRevealTimer();
+      awaitingAudioRef.current = false;
+      pendingResponseRef.current = '';
+      if (!preservePhase) {
+        setAssistantPhase(null);
+      }
+
+      if (visibleText) {
+        addMessage('ai', visibleText, false);
+      }
+    },
+    [addMessage, clearRevealTimer]
+  );
 
   /**
    * Handle incoming WebSocket messages.
@@ -42,33 +107,51 @@ export default function useConversation() {
     const unsubscribe = onMessage((data) => {
       switch (data.type) {
         case 'chunk':
-          if (!streamingRef.current) {
-            /* First chunk — create a new AI message in streaming mode */
-            streamingRef.current = true;
-            addMessage('ai', data.text, true);
-            setIsAIThinking(false);
-          } else {
-            /* Subsequent chunks — append to existing message */
-            updateLastMessage(data.text);
-          }
+          pendingResponseRef.current += data.text || '';
+          setAssistantPhase((currentPhase) => currentPhase || 'thinking');
           break;
 
         case 'done':
-          if (streamingRef.current) {
-            finalizeLastMessage(data.fullText);
-            streamingRef.current = false;
+          if (typeof data.fullText === 'string') {
+            pendingResponseRef.current = data.fullText;
           }
-          setIsAIThinking(false);
+
+          if (pendingResponseRef.current.trim()) {
+            clearRevealTimer();
+            awaitingAudioRef.current = true;
+            setAssistantPhase('preparing-speech');
+            revealTimerRef.current = setTimeout(() => {
+              revealPendingResponse();
+            }, AUDIO_REVEAL_FALLBACK_MS);
+          } else {
+            resetPendingResponse();
+          }
           break;
 
         case 'audio':
-          playAudio(data.data);
+          if (!awaitingAudioRef.current) {
+            break;
+          }
+
+          if (pendingResponseRef.current.trim()) {
+            revealPendingResponse(undefined, { preservePhase: true });
+          } else {
+            clearRevealTimer();
+            awaitingAudioRef.current = false;
+          }
+
+          void playAudio(data.data).finally(() => {
+            setAssistantPhase(null);
+          });
+          break;
+
+        case 'audio-unavailable':
+          revealPendingResponse();
           break;
 
         case 'error':
           console.error('[useConversation] Server error:', data.message);
-          setIsAIThinking(false);
-          streamingRef.current = false;
+          resetPendingResponse();
           /* Add error as a system-style AI message */
           addMessage('ai', `⚠️ ${data.message}`, false);
           break;
@@ -78,8 +161,11 @@ export default function useConversation() {
       }
     });
 
-    return unsubscribe;
-  }, [addMessage, updateLastMessage, finalizeLastMessage, playAudio]);
+    return () => {
+      clearRevealTimer();
+      unsubscribe();
+    };
+  }, [addMessage, playAudio, revealPendingResponse, resetPendingResponse, clearRevealTimer]);
 
   /**
    * Send a user message through WebSocket.
@@ -89,26 +175,41 @@ export default function useConversation() {
     (text) => {
       if (!text.trim() || !isConnected) return;
 
+      clearRevealTimer();
+      awaitingAudioRef.current = false;
+      pendingResponseRef.current = '';
+      assistantCopyRef.current = {
+        thinking: pickRandomMessage(THINKING_MESSAGES),
+        preparingSpeech: pickRandomMessage(PREPARING_SPEECH_MESSAGES),
+      };
+
       /* Add user message to local store */
       addMessage('user', text.trim(), false);
 
       /* Mark as thinking */
-      setIsAIThinking(true);
-      streamingRef.current = false;
+      setAssistantPhase('thinking');
 
       /* Send via WebSocket (include modeConfig for prompt building) */
       send('message', { text: text.trim(), sessionId, modeConfig: activeMode || undefined });
     },
-    [isConnected, addMessage, sessionId, activeMode]
+    [isConnected, addMessage, sessionId, activeMode, clearRevealTimer]
   );
 
   /**
    * Clear conversation history (both local and server-side).
    */
   const clearConversation = useCallback(() => {
+    resetPendingResponse();
     clearMessages();
     send('clear', { sessionId });
-  }, [clearMessages, sessionId]);
+  }, [clearMessages, sessionId, resetPendingResponse]);
 
-  return { sendMessage, clearConversation, isConnected, isAIThinking };
+  return {
+    sendMessage,
+    clearConversation,
+    isConnected,
+    isAIThinking,
+    isPreparingSpeech,
+    assistantStatus,
+  };
 }

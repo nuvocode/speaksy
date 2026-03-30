@@ -139,6 +139,15 @@ const styles = {
     borderTop: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-surface)',
   },
+  assistantStatus: {
+    minHeight: 'var(--text-base)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-muted)',
+    fontWeight: 'var(--weight-medium)',
+    textAlign: 'center',
+    animation: 'fadeInUp var(--duration-fast) var(--ease-out) both',
+  },
   waveContainer: {
     width: '100%',
     maxWidth: 300,
@@ -159,7 +168,7 @@ export default function ConversationScreen() {
   const activeMode = useAppStore((s) => s.activeMode);
   const endSession = useAppStore((s) => s.endSession);
 
-  const { clearConversation, isAIThinking } = useConversation();
+  const { sendMessage, clearConversation, isAIThinking, isPreparingSpeech, assistantStatus } = useConversation();
   const scrollAnchorRef = useRef(null);
 
   /* Auto-scroll to bottom when new messages arrive */
@@ -179,13 +188,15 @@ export default function ConversationScreen() {
   /* Determine wave animation mode */
   let waveMode = 'idle';
   let waveActive = false;
+  const isAIBusy = isAIThinking || isPreparingSpeech;
+
   if (isUserSpeaking) {
     waveMode = 'user';
     waveActive = true;
   } else if (isAISpeaking) {
     waveMode = 'ai';
     waveActive = true;
-  } else if (isAIThinking) {
+  } else if (isAIBusy) {
     waveMode = 'ai';
     waveActive = true;
   }
@@ -278,18 +289,25 @@ export default function ConversationScreen() {
 
       {/* ── Bottom: Wave + Mic ─────────────────── */}
       <div style={styles.bottomSection}>
+        {assistantStatus ? (
+          <div style={styles.assistantStatus} role="status" aria-live="polite">
+            {assistantStatus}
+          </div>
+        ) : (
+          <div style={styles.assistantStatus} aria-hidden="true" />
+        )}
         <div style={styles.waveContainer}>
           <WaveAnimation
             isActive={waveActive}
             audioLevel={
-              isAIThinking && !isAISpeaking && !isUserSpeaking
+              isAIBusy && !isAISpeaking && !isUserSpeaking
                 ? 0.3 + Math.sin(Date.now() / 300) * 0.15
                 : audioLevel
             }
             mode={waveMode}
           />
         </div>
-        <MicButton />
+        <MicButton sendMessage={sendMessage} isAIBusy={isAIBusy} busyLabel={assistantStatus} />
       </div>
     </div>
   );

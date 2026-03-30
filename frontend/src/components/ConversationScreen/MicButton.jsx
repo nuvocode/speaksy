@@ -5,15 +5,13 @@
  *   - Listening: coral bg, white icon, pulse rings
  *   - AI speaking: disabled, dimmed, "AI is speaking..." label
  *
- * Reads state from Zustand store directly.
- * Triggers start/stop listening and sends final transcript.
+ * Reads speech state from Zustand and conversation actions from props.
  */
 
 import React, { useCallback, useRef } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import useSTT from '../../hooks/useSTT.js';
-import useConversation from '../../hooks/useConversation.js';
 
 /** Button diameter in pixels */
 const BUTTON_SIZE = 72;
@@ -90,14 +88,13 @@ const styles = {
 
 /**
  * MicButton component.
+ * @param {{ sendMessage: function(string): void, isAIBusy?: boolean, busyLabel?: string }} props
  * @returns {React.ReactElement}
  */
-export default function MicButton() {
-  const isUserSpeaking = useAppStore((s) => s.isUserSpeaking);
+export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = 'Thinking...' }) {
   const isAISpeaking = useAppStore((s) => s.isAISpeaking);
   const wsStatus = useAppStore((s) => s.wsStatus);
 
-  const { sendMessage } = useConversation();
   const transcriptRef = useRef('');
 
   const { isListening, startListening, stopListening, isSupported } = useSTT({
@@ -110,7 +107,7 @@ export default function MicButton() {
     },
   });
 
-  const isDisabled = isAISpeaking || wsStatus !== 'connected';
+  const isDisabled = isAISpeaking || isAIBusy || wsStatus !== 'connected';
 
   /**
    * Toggle listening state.
@@ -136,7 +133,13 @@ export default function MicButton() {
 
   if (isDisabled) {
     buttonStyle = styles.buttonDisabled;
-    statusLabel = isAISpeaking ? 'AI is speaking...' : 'Not connected';
+    if (wsStatus !== 'connected') {
+      statusLabel = 'Not connected';
+    } else if (isAISpeaking) {
+      statusLabel = 'AI is speaking...';
+    } else {
+      statusLabel = busyLabel;
+    }
   } else if (isListening) {
     buttonStyle = styles.buttonListening;
     statusLabel = 'Listening...';

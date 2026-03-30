@@ -69,6 +69,29 @@ export default function useSTT({ onTranscript } = {}) {
     setAudioLevel(0);
   }, [setAudioLevel]);
 
+  const resetWebSpeechState = useCallback(() => {
+    setIsListening(false);
+    setUserSpeaking(false);
+    stopAudioSimulation();
+  }, [setUserSpeaking, stopAudioSimulation]);
+
+  /**
+   * Stop Web Speech API recognition and immediately reflect the closed mic state in UI.
+   */
+  const stopWebSpeech = useCallback(() => {
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    resetWebSpeechState();
+
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch {
+        /* ignore repeated stop calls */
+      }
+    }
+  }, [resetWebSpeechState]);
+
   /**
    * Start listening via Web Speech API.
    */
@@ -76,7 +99,7 @@ export default function useSTT({ onTranscript } = {}) {
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
@@ -100,8 +123,10 @@ export default function useSTT({ onTranscript } = {}) {
       }
 
       if (finalTranscript) {
-        setTranscript(finalTranscript.trim());
-        onTranscript?.(finalTranscript.trim(), true);
+        const finalText = finalTranscript.trim();
+        setTranscript(finalText);
+        stopWebSpeech();
+        onTranscript?.(finalText, true);
       } else if (interimTranscript) {
         setTranscript(interimTranscript.trim());
         onTranscript?.(interimTranscript.trim(), false);
@@ -111,31 +136,21 @@ export default function useSTT({ onTranscript } = {}) {
     recognition.onerror = (event) => {
       console.error('[useSTT] Web Speech error:', event.error);
       if (event.error !== 'aborted') {
-        setIsListening(false);
-        setUserSpeaking(false);
-        stopAudioSimulation();
+        resetWebSpeechState();
       }
+      recognitionRef.current = null;
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      setUserSpeaking(false);
-      stopAudioSimulation();
+      if (recognitionRef.current === recognition) {
+        recognitionRef.current = null;
+      }
+      resetWebSpeechState();
     };
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [SpeechRecognition, setUserSpeaking, startAudioSimulation, stopAudioSimulation, onTranscript]);
-
-  /**
-   * Stop Web Speech API recognition.
-   */
-  const stopWebSpeech = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
-  }, []);
+  }, [SpeechRecognition, setUserSpeaking, startAudioSimulation, resetWebSpeechState, stopWebSpeech, onTranscript]);
 
   /**
    * Start listening via Whisper (MediaRecorder + silence detection).
