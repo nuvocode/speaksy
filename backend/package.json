@@ -1,7 +1,7 @@
 {
-  "name": "linguaai-backend",
+  "name": "speaksy-backend",
   "version": "1.0.0",
-  "description": "LinguaAI — English conversation practice backend",
+  "description": "Speaksy backend for local-first speaking practice",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

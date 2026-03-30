@@ -1,10 +1,15 @@
 /**
  * @module store/appStore
- * Zustand global state store for LinguaAI.
+ * Zustand global state store for Speaksy.
  * Central state management for conversation, connection, audio, settings, view, mode, and theme.
  */
 
 import { create } from 'zustand';
+
+const SETTINGS_STORAGE_KEY = 'speaksy-settings';
+const LEGACY_SETTINGS_STORAGE_KEY = 'linguaai-settings';
+const THEME_STORAGE_KEY = 'speaksy-theme';
+const LEGACY_THEME_STORAGE_KEY = 'linguaai-theme';
 
 /**
  * Generate a UUID v4 string.
@@ -25,13 +30,15 @@ function generateId() {
  */
 function loadSettings() {
   try {
-    const saved = localStorage.getItem('linguaai-settings');
+    const saved =
+      localStorage.getItem(SETTINGS_STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_SETTINGS_STORAGE_KEY);
     if (saved) return JSON.parse(saved);
   } catch {
     /* ignore parse errors */
   }
   return {
-    aiProvider: 'gemini',
+    aiProvider: 'ollama',
     sttProvider: 'webspeech',
     voice: 'af_heart',
     aiModel: '',
@@ -48,7 +55,7 @@ function loadSettings() {
  */
 function saveSettings(settings) {
   try {
-    localStorage.setItem('linguaai-settings', JSON.stringify(settings));
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   } catch {
     /* ignore storage errors */
   }
@@ -60,7 +67,9 @@ function saveSettings(settings) {
  */
 function loadTheme() {
   try {
-    const saved = localStorage.getItem('linguaai-theme');
+    const saved =
+      localStorage.getItem(THEME_STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
     if (saved === 'dark' || saved === 'light') return saved;
   } catch {
     /* ignore */
@@ -74,7 +83,7 @@ function loadTheme() {
  */
 function applyTheme(theme) {
   try {
-    localStorage.setItem('linguaai-theme', theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
     /* ignore */
   }

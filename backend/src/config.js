@@ -1,6 +1,6 @@
 /**
  * @module config
- * Central configuration module for LinguaAI backend.
+ * Central configuration module for Speaksy backend.
  * Reads and validates all environment variables.
  */
 
@@ -21,7 +21,7 @@ const config = {
   port: parseInt(process.env.PORT || '3001', 10),
 
   /** Selected AI provider */
-  aiProvider: process.env.AI_PROVIDER || 'gemini',
+  aiProvider: process.env.AI_PROVIDER || 'ollama',
 
   /** Selected STT provider */
   sttProvider: process.env.STT_PROVIDER || 'webspeech',
@@ -55,9 +55,9 @@ export function validateConfig() {
   if (!VALID_AI_PROVIDERS.includes(config.aiProvider)) {
     console.warn(
       `[config] Invalid AI_PROVIDER "${config.aiProvider}". ` +
-      `Valid options: ${VALID_AI_PROVIDERS.join(', ')}. Falling back to "gemini".`
+      `Valid options: ${VALID_AI_PROVIDERS.join(', ')}. Falling back to "ollama".`
     );
-    config.aiProvider = 'gemini';
+    config.aiProvider = 'ollama';
   }
 
   if (!VALID_STT_PROVIDERS.includes(config.sttProvider)) {

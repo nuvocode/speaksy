@@ -1,7 +1,7 @@
 /**
  * @module components/shared/Logo
- * LinguaAI brand logo.
- * "Lingua" in Fraunces display font, "AI" as accent badge.
+ * Speaksy brand logo.
+ * "Speak" in Fraunces display font, "sy" as accent badge.
  */
 
 import React from 'react';
@@ -37,14 +37,14 @@ const styles = {
 };
 
 /**
- * LinguaAI Logo component.
+ * Speaksy logo component.
  * @returns {React.ReactElement}
  */
 export default function Logo() {
   return (
-    <div style={styles.container} aria-label="LinguaAI">
-      <span style={styles.text}>Lingua</span>
-      <span style={styles.badge}>AI</span>
+    <div style={styles.container} aria-label="Speaksy">
+      <span style={styles.text}>Speak</span>
+      <span style={styles.badge}>sy</span>
     </div>
   );
 }

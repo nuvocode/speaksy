@@ -1,6 +1,6 @@
 /**
  * @module components/ConversationScreen
- * Main conversation screen — the primary view of LinguaAI.
+ * Main conversation screen — the primary view of Speaksy.
  *
  * Layout (top to bottom):
  *   1. Header bar — Back (left), Mode badge (center), Settings/Theme (right)

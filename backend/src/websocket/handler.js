@@ -1,6 +1,6 @@
 /**
  * @module websocket/handler
- * WebSocket message handler for LinguaAI.
+ * WebSocket message handler for Speaksy.
  *
  * Message types (Client → Server):
  *   { type: 'message', text: string, sessionId: string, modeConfig?: ModeConfig }

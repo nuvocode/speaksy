@@ -1,6 +1,6 @@
 /**
  * @module index
- * LinguaAI Backend — Express + WebSocket server entry point.
+ * Speaksy backend — Express + WebSocket server entry point.
  * Starts the HTTP server, mounts REST routes, and initialises WebSocket handling.
  */
 
@@ -42,15 +42,12 @@ initWebSocket(wss);
 /* ── Start ───────────────────────────────────────────── */
 server.listen(config.port, () => {
   console.log(`
-╔══════════════════════════════════════════╗
-║          LinguaAI Backend v1.0           ║
-║──────────────────────────────────────────║
-║  HTTP  → http://localhost:${config.port}          ║
-║  WS    → ws://localhost:${config.port}/ws         ║
-║  AI    → ${config.aiProvider.padEnd(30)}║
-║  STT   → ${config.sttProvider.padEnd(30)}║
-║  TTS   → Kokoro @ ${config.kokoroUrl.padEnd(21)}║
-╚══════════════════════════════════════════╝
+[Speaksy] Backend running
+[Speaksy] HTTP: http://localhost:${config.port}
+[Speaksy] WS: ws://localhost:${config.port}/ws
+[Speaksy] AI provider: ${config.aiProvider}
+[Speaksy] STT provider: ${config.sttProvider}
+[Speaksy] TTS endpoint: ${config.kokoroUrl}
   `);
 });
 

@@ -1,5 +1,5 @@
 /**
- * Vite configuration for LinguaAI frontend.
+ * Vite configuration for Speaksy frontend.
  * Proxies /api and /ws requests to the backend service.
  *
  * The proxy target defaults to localhost:3001 for local dev.

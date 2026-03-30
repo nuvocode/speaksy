@@ -1,6 +1,6 @@
 /**
  * @module App
- * Root application component for LinguaAI.
+ * Root application component for Speaksy.
  * - Fills entire viewport (100dvh)
  * - Establishes WebSocket connection on mount
  * - Routes between ModeSelection and ConversationScreen based on currentView

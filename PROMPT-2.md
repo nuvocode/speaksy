@@ -1,7 +1,7 @@
-# LinguaAI — Mode Selection, Topic/Script Modes & Dark/Light Theme Prompt
+# Speaksy — Mode Selection, Topic/Script Modes & Dark/Light Theme Prompt
 
 ## Bağlam
-Bu prompt, mevcut LinguaAI sistemine eklenti niteliğindedir. Önceki prompt ile kurulmuş olan proje iskeletine (Zustand store, WebSocket altyapısı, token-tabanlı CSS sistemi, React component yapısı) dokunmadan genişletme yapılacak. Mevcut `ConversationScreen` ve tüm hook'lar çalışır durumda; bu prompt yalnızca **yeni dosyaları** ve **değiştirilmesi gereken kısımları** tanımlar.
+Bu prompt, mevcut Speaksy sistemine eklenti niteliğindedir. Önceki prompt ile kurulmuş olan proje iskeletine (Zustand store, WebSocket altyapısı, token-tabanlı CSS sistemi, React component yapısı) dokunmadan genişletme yapılacak. Mevcut `ConversationScreen` ve tüm hook'lar çalışır durumda; bu prompt yalnızca **yeni dosyaları** ve **değiştirilmesi gereken kısımları** tanımlar.
 
 ---
 
