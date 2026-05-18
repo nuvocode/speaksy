@@ -8,12 +8,18 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 
 import config, { validateConfig } from './config.js';
 import { initWebSocket } from './websocket/handler.js';
 import chatRouter from './routes/chat.js';
 import ttsRouter from './routes/tts.js';
 import sttRouter from './routes/stt.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const publicDir = join(__dirname, '../public');
 
 /* ── Validate configuration ─────────────────────────── */
 validateConfig();
@@ -32,6 +38,12 @@ app.get('/health', (_req, res) => {
 app.use('/api/chat', chatRouter);
 app.use('/api/tts', ttsRouter);
 app.use('/api/stt', sttRouter);
+
+/* Static frontend (production Docker image) */
+if (existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+  app.get('*', (_req, res) => res.sendFile(join(publicDir, 'index.html')));
+}
 
 /* ── HTTP + WebSocket server ─────────────────────────── */
 const server = createServer(app);

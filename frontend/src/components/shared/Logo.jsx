@@ -16,7 +16,6 @@ const styles = {
   wordmark: {
     display: 'flex',
     alignItems: 'baseline',
-    gap: '2px',
     lineHeight: 1,
   },
   textGrad: {
