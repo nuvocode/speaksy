@@ -24,8 +24,9 @@ export default class GroqProvider extends BaseProvider {
 
   /** @inheritdoc */
   async chat(messages, options = {}) {
+    const model = this.resolveModel(options);
     const response = await this.client.chat.completions.create({
-      model: this.model,
+      model,
       messages,
       ...options,
     });
@@ -34,8 +35,9 @@ export default class GroqProvider extends BaseProvider {
 
   /** @inheritdoc */
   async *stream(messages, options = {}) {
+    const model = this.resolveModel(options);
     const stream = await this.client.chat.completions.create({
-      model: this.model,
+      model,
       messages,
       stream: true,
       ...options,
@@ -48,13 +50,28 @@ export default class GroqProvider extends BaseProvider {
   }
 
   /** @inheritdoc */
-  async isAvailable() {
+  async isAvailable(options = {}) {
     try {
       if (!this.apiKey) return false;
-      await this.client.models.list();
-      return true;
+      const model = this.resolveModel(options);
+      const models = await this.client.models.list();
+      return models.data.some((item) => item.id === model);
     } catch {
       return false;
     }
+  }
+
+  /** @inheritdoc */
+  async listModels() {
+    if (!this.apiKey) {
+      throw new Error('Groq API key is not configured on the backend.');
+    }
+
+    const models = await this.client.models.list();
+    return models.data
+      .map((item) => item.id)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((id) => ({ id, label: id }));
   }
 }

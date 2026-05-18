@@ -26,11 +26,12 @@ export default class OllamaProvider extends BaseProvider {
 
   /** @inheritdoc */
   async chat(messages, options = {}) {
+    const model = this.resolveModel(options);
     const response = await fetch(`${this.baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: this.model,
+        model,
         messages: this._formatMessages(messages),
         stream: false,
       }),
@@ -46,11 +47,12 @@ export default class OllamaProvider extends BaseProvider {
 
   /** @inheritdoc */
   async *stream(messages, options = {}) {
+    const model = this.resolveModel(options);
     const response = await fetch(`${this.baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: this.model,
+        model,
         messages: this._formatMessages(messages),
         stream: true,
       }),
@@ -91,5 +93,23 @@ export default class OllamaProvider extends BaseProvider {
     } catch {
       return false;
     }
+  }
+
+  /** @inheritdoc */
+  async listModels() {
+    const response = await fetch(`${this.baseUrl}/api/tags`, {
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama models request failed: ${response.status} ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return (data.models || [])
+      .map((item) => item.name)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((id) => ({ id, label: id }));
   }
 }

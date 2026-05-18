@@ -16,11 +16,12 @@ export default class LMStudioProvider extends BaseProvider {
 
   /** @inheritdoc */
   async chat(messages, options = {}) {
+    const model = this.resolveModel(options);
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: this.model,
+        model,
         messages,
         stream: false,
         ...options,
@@ -37,11 +38,12 @@ export default class LMStudioProvider extends BaseProvider {
 
   /** @inheritdoc */
   async *stream(messages, options = {}) {
+    const model = this.resolveModel(options);
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: this.model,
+        model,
         messages,
         stream: true,
         ...options,
@@ -92,5 +94,23 @@ export default class LMStudioProvider extends BaseProvider {
     } catch {
       return false;
     }
+  }
+
+  /** @inheritdoc */
+  async listModels() {
+    const response = await fetch(`${this.baseUrl}/v1/models`, {
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`LM Studio models request failed: ${response.status} ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return (data.data || [])
+      .map((item) => item.id)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((id) => ({ id, label: id }));
   }
 }

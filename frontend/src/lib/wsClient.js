@@ -95,6 +95,7 @@ export function connect(url) {
     const { settings } = useAppStore.getState();
     send('settings', {
       provider: settings.aiProvider,
+      model: settings.aiModel,
       voice: settings.voice,
     });
   };

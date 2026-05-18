@@ -18,10 +18,31 @@ const router = Router();
 router.get('/health', async (req, res) => {
   try {
     const provider = getProvider(req.query.provider);
-    const available = await provider.isAvailable();
+    const available = await provider.isAvailable({ model: req.query.model });
     res.json({ provider: provider.name, available });
   } catch (error) {
     res.json({ provider: req.query.provider || 'unknown', available: false, error: error.message });
+  }
+});
+
+/**
+ * Available model list for the selected provider.
+ */
+router.get('/models', async (req, res) => {
+  try {
+    const provider = getProvider(req.query.provider);
+    const models = await provider.listModels();
+    res.json({
+      provider: provider.name,
+      selectedModel: provider.model || '',
+      models,
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'unknown',
+      models: [],
+      error: error.message,
+    });
   }
 });
 
@@ -31,7 +52,12 @@ router.get('/health', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { text, sessionId = 'rest-default' } = req.body;
+    const {
+      text,
+      sessionId = 'rest-default',
+      provider: providerName,
+      model,
+    } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: 'Missing "text" in request body.' });
@@ -46,8 +72,8 @@ router.post('/', async (req, res) => {
     addMessage(sessionId, 'user', text);
     const messages = getHistory(sessionId);
 
-    const provider = getProvider();
-    const reply = await provider.chat(messages);
+    const provider = getProvider(providerName);
+    const reply = await provider.chat(messages, model ? { model } : {});
 
     addMessage(sessionId, 'assistant', reply);
     res.json({ reply });

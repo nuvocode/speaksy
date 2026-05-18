@@ -49,9 +49,10 @@ export default class AnthropicProvider extends BaseProvider {
   /** @inheritdoc */
   async chat(messages, options = {}) {
     const { system, messages: formatted } = this._prepareMessages(messages);
+    const model = this.resolveModel(options);
 
     const response = await this.client.messages.create({
-      model: this.model,
+      model,
       max_tokens: MAX_TOKENS,
       ...(system && { system }),
       messages: formatted,
@@ -64,9 +65,10 @@ export default class AnthropicProvider extends BaseProvider {
   /** @inheritdoc */
   async *stream(messages, options = {}) {
     const { system, messages: formatted } = this._prepareMessages(messages);
+    const model = this.resolveModel(options);
 
     const stream = this.client.messages.stream({
-      model: this.model,
+      model,
       max_tokens: MAX_TOKENS,
       ...(system && { system }),
       messages: formatted,
@@ -81,11 +83,12 @@ export default class AnthropicProvider extends BaseProvider {
   }
 
   /** @inheritdoc */
-  async isAvailable() {
+  async isAvailable(options = {}) {
     try {
       if (!this.apiKey) return false;
+      const model = this.resolveModel(options);
       await this.client.messages.create({
-        model: this.model,
+        model,
         max_tokens: 10,
         messages: [{ role: 'user', content: 'ping' }],
       });
@@ -93,5 +96,30 @@ export default class AnthropicProvider extends BaseProvider {
     } catch {
       return false;
     }
+  }
+
+  /** @inheritdoc */
+  async listModels() {
+    if (!this.apiKey) {
+      throw new Error('Anthropic API key is not configured on the backend.');
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/models', {
+      headers: {
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Anthropic models request failed: ${response.status} ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return (data.data || [])
+      .map((item) => item.id)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((id) => ({ id, label: id }));
   }
 }

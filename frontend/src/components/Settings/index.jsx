@@ -152,10 +152,12 @@ export default function Settings() {
     const prev = prevSettingsRef.current;
     if (
       prev.aiProvider !== settings.aiProvider ||
+      prev.aiModel !== settings.aiModel ||
       prev.voice !== settings.voice
     ) {
       send('settings', {
         provider: settings.aiProvider,
+        model: settings.aiModel,
         voice: settings.voice,
       });
     }

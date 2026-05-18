@@ -4,7 +4,7 @@
  * Also includes a connection test button.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import useAppStore from '../../store/appStore.js';
 
 /** Available AI providers with their configuration */
@@ -117,6 +117,12 @@ const styles = {
     borderRadius: 'var(--radius-sm)',
     textAlign: 'center',
   },
+  helperText: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-xs)',
+    color: 'var(--color-muted)',
+    lineHeight: 'var(--leading-normal)',
+  },
   divider: {
     width: '100%',
     height: 1,
@@ -134,9 +140,68 @@ export default function ProviderForm() {
 
   const [testStatus, setTestStatus] = useState(null); /* null | 'loading' | 'success' | 'error' */
   const [testMessage, setTestMessage] = useState('');
+  const [modelsStatus, setModelsStatus] = useState('idle'); /* idle | loading | success | error */
+  const [modelsMessage, setModelsMessage] = useState('');
+  const [modelOptions, setModelOptions] = useState([]);
 
   const selectedProviderConfig = AI_PROVIDERS.find((p) => p.value === settings.aiProvider);
   const apiKeyField = API_KEY_FIELDS[settings.aiProvider];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadModels = async () => {
+      setModelsStatus('loading');
+      setModelsMessage('');
+
+      try {
+        const response = await fetch(
+          `/api/chat/models?provider=${encodeURIComponent(settings.aiProvider)}`
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load models.');
+        }
+
+        const models = Array.isArray(data.models) ? data.models : [];
+        if (cancelled) return;
+
+        setModelOptions(models);
+        setModelsStatus('success');
+
+        if (models.length === 0) {
+          setModelsMessage('No models were returned for this provider.');
+          if (settings.aiModel) updateSettings({ aiModel: '' });
+          return;
+        }
+
+        const hasCurrentModel = models.some((model) => model.id === settings.aiModel);
+        const hasDefaultModel = models.some((model) => model.id === data.selectedModel);
+        const nextModel = hasCurrentModel
+          ? settings.aiModel
+          : hasDefaultModel
+            ? data.selectedModel
+            : models[0].id;
+
+        if (nextModel !== settings.aiModel) {
+          updateSettings({ aiModel: nextModel });
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setModelOptions([]);
+        setModelsStatus('error');
+        setModelsMessage(error.message);
+        if (settings.aiModel) updateSettings({ aiModel: '' });
+      }
+    };
+
+    loadModels();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [settings.aiProvider, updateSettings]);
 
   /**
    * Handle provider change.
@@ -144,7 +209,7 @@ export default function ProviderForm() {
    */
   const handleProviderChange = useCallback(
     (e) => {
-      updateSettings({ aiProvider: e.target.value });
+      updateSettings({ aiProvider: e.target.value, aiModel: '' });
       setTestStatus(null);
     },
     [updateSettings]
@@ -171,7 +236,9 @@ export default function ProviderForm() {
     setTestMessage('Testing connection...');
 
     try {
-      const response = await fetch(`/api/chat/health?provider=${settings.aiProvider}`);
+      const response = await fetch(
+        `/api/chat/health?provider=${encodeURIComponent(settings.aiProvider)}&model=${encodeURIComponent(settings.aiModel || '')}`
+      );
       const data = await response.json();
 
       if (data.available) {
@@ -185,7 +252,7 @@ export default function ProviderForm() {
       setTestStatus('error');
       setTestMessage(`✗ Connection test failed: ${error.message}`);
     }
-  }, [settings.aiProvider]);
+  }, [settings.aiProvider, settings.aiModel]);
 
   return (
     <div style={styles.form}>
@@ -230,6 +297,45 @@ export default function ProviderForm() {
           />
         </div>
       )}
+
+      <div style={styles.fieldGroup}>
+        <label style={styles.label} htmlFor="ai-model">
+          AI Model
+        </label>
+        <p style={styles.sublabel}>
+          Available models are loaded from the selected provider.
+        </p>
+        <select
+          id="ai-model"
+          style={styles.select}
+          value={settings.aiModel || ''}
+          onChange={(e) => updateSettings({ aiModel: e.target.value })}
+          disabled={modelsStatus === 'loading' || modelOptions.length === 0}
+          aria-label="Select AI model"
+        >
+          {modelsStatus === 'loading' && (
+            <option value="">Loading models...</option>
+          )}
+          {modelsStatus !== 'loading' && modelOptions.length === 0 && (
+            <option value="">No models available</option>
+          )}
+          {modelOptions.map((model) => (
+            <option key={model.id} value={model.id}>
+              {model.label || model.id}
+            </option>
+          ))}
+        </select>
+        {modelsMessage && (
+          <div
+            style={{
+              ...styles.helperText,
+              color: modelsStatus === 'error' ? 'var(--color-error)' : 'var(--color-muted)',
+            }}
+          >
+            {modelsMessage}
+          </div>
+        )}
+      </div>
 
       {/* Connection Test */}
       <div style={styles.fieldGroup}>

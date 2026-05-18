@@ -57,9 +57,10 @@ export default class GeminiProvider extends BaseProvider {
   /** @inheritdoc */
   async chat(messages, options = {}) {
     const { systemInstruction, history, userMessage } = this._prepareMessages(messages);
+    const modelName = this.resolveModel(options);
 
     const model = this.client.getGenerativeModel({
-      model: this.model,
+      model: modelName,
       ...(systemInstruction && { systemInstruction }),
     });
 
@@ -71,9 +72,10 @@ export default class GeminiProvider extends BaseProvider {
   /** @inheritdoc */
   async *stream(messages, options = {}) {
     const { systemInstruction, history, userMessage } = this._prepareMessages(messages);
+    const modelName = this.resolveModel(options);
 
     const model = this.client.getGenerativeModel({
-      model: this.model,
+      model: modelName,
       ...(systemInstruction && { systemInstruction }),
     });
 
@@ -87,14 +89,38 @@ export default class GeminiProvider extends BaseProvider {
   }
 
   /** @inheritdoc */
-  async isAvailable() {
+  async isAvailable(options = {}) {
     try {
       if (!this.apiKey) return false;
-      const model = this.client.getGenerativeModel({ model: this.model });
+      const modelName = this.resolveModel(options);
+      const model = this.client.getGenerativeModel({ model: modelName });
       await model.generateContent('ping');
       return true;
     } catch {
       return false;
     }
+  }
+
+  /** @inheritdoc */
+  async listModels() {
+    if (!this.apiKey) {
+      throw new Error('Gemini API key is not configured on the backend.');
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(this.apiKey)}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Gemini models request failed: ${response.status} ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return (data.models || [])
+      .filter((item) => item.supportedGenerationMethods?.includes('generateContent'))
+      .map((item) => item.name?.replace(/^models\//, ''))
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((id) => ({ id, label: id }));
   }
 }

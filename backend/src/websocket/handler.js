@@ -5,7 +5,7 @@
  * Message types (Client → Server):
  *   { type: 'message', text: string, sessionId: string, modeConfig?: ModeConfig }
  *   { type: 'clear', sessionId: string }
- *   { type: 'settings', provider: string, voice: string }
+ *   { type: 'settings', provider: string, model?: string, voice: string }
  *
  * Message types (Server → Client):
  *   { type: 'chunk', text: string }          — streaming AI chunk
@@ -133,10 +133,11 @@ async function handleMessage(ws, text, sessionId, modeConfig) {
     /* Get appropriate provider */
     const settings = connectionSettings.get(ws) || {};
     const provider = getProvider(settings.provider);
+    const modelOptions = settings.model ? { model: settings.model } : {};
 
     /* Stream the AI response */
     let fullText = '';
-    for await (const chunk of provider.stream(messages)) {
+    for await (const chunk of provider.stream(messages, modelOptions)) {
       fullText += chunk;
       send(ws, { type: 'chunk', text: chunk });
     }
@@ -192,6 +193,7 @@ export function initWebSocket(wss) {
         case 'settings':
           connectionSettings.set(ws, {
             provider: data.provider || config.aiProvider,
+            model: data.model || '',
             voice: data.voice || config.kokoroVoice,
           });
           break;

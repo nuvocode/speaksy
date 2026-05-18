@@ -37,10 +37,31 @@ export default class BaseProvider {
   }
 
   /**
+   * Resolve the active model, preferring a per-request override.
+   * @param {{ model?: string }} [options]
+   * @returns {string|undefined}
+   */
+  resolveModel(options = {}) {
+    return options.model || this.model;
+  }
+
+  /**
    * Check whether the provider service is reachable.
+   * @param {Object} [options]
    * @returns {Promise<boolean>}
    */
-  async isAvailable() {
+  async isAvailable(options = {}) {
+    void options;
     return false;
+  }
+
+  /**
+   * Fetch the models that can be used with this provider.
+   * Providers with discovery support should override this.
+   * @returns {Promise<Array<{id: string, label: string}>>}
+   */
+  async listModels() {
+    const model = this.resolveModel();
+    return model ? [{ id: model, label: model }] : [];
   }
 }
