@@ -73,7 +73,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-3)',
-    height: '26vh'
   },
   sectionLabelRow: {
     display: 'flex',
@@ -115,7 +114,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000,
+    zIndex: 1100,
   },
   modal: {
     backgroundColor: 'var(--color-s1)',
@@ -411,6 +410,7 @@ export default function ScriptConfig({ onConfigChange }) {
   const [importOpen, setImportOpen] = useState(false);
   const [importError, setImportError] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [scriptPickerOpen, setScriptPickerOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   const [marketplaceOpen, setMarketplaceOpen] = useState(false);
@@ -422,6 +422,7 @@ export default function ScriptConfig({ onConfigChange }) {
   );
 
   const allScripts = [...customScripts, ...SCRIPTS];
+  const selectedScript = selectedId ? allScripts.find((s) => s.id === selectedId) : null;
 
   const handleSelect = (script) => {
     setSelectedId(script.id);
@@ -631,81 +632,135 @@ export default function ScriptConfig({ onConfigChange }) {
         </div>
       )}
 
+      {scriptPickerOpen && (
+        <div style={{ ...styles.backdrop, zIndex: 1050 }} onClick={() => setScriptPickerOpen(false)}>
+          <div
+            style={{
+              ...styles.marketplaceModal,
+              maxWidth: 600,
+              maxHeight: '80vh',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={styles.sectionLabelRow}>
+              <span style={styles.modalTitle}>Choose a script</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <a
+                  href='javascript:;'
+                  style={styles.importIconBtn}
+                  onClick={() => { setImportOpen(true); setImportError(''); }}
+                  title="Import scripts from JSON"
+                  aria-label="Import scripts"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </a>
+                <a
+                  href='javascript:;'
+                  style={styles.importIconBtn}
+                  onClick={openMarketplace}
+                  title="Browse Marketplace"
+                  aria-label="Browse marketplace"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 4C9 2.89543 9.89543 2 11 2C12.1046 2 13 2.89543 13 4V6H18V11H20C21.1046 11 22 11.8954 22 13C22 14.1046 21.1046 15 20 15H18V20H13V18C13 16.8954 12.1046 16 11 16C9.89543 16 9 16.8954 9 18V20H4V15H6C7.10457 15 8 14.1046 8 13C8 11.8954 7.10457 11 6 11H4V6H9V4Z" />
+                  </svg>
+                </a>
+                <button style={styles.modalCloseBtn} onClick={() => setScriptPickerOpen(false)}>✕</button>
+              </div>
+            </div>
+
+            <div style={styles.marketplaceBody}>
+              {allScripts.map((script) => {
+                const isActive = selectedId === script.id;
+                const diff = DIFFICULTY_COLORS[script.difficulty] || DIFFICULTY_COLORS.beginner;
+                return (
+                  <button
+                    key={script.id}
+                    style={{
+                      ...styles.scriptCard,
+                      borderColor: isActive ? 'rgba(168,85,247,.4)' : 'var(--color-b2)',
+                      backgroundColor: isActive ? 'rgba(168,85,247,.06)' : 'var(--color-s2)',
+                      boxShadow: isActive ? '0 0 0 1px rgba(168,85,247,.2)' : 'none',
+                    }}
+                    onClick={() => { handleSelect(script); setScriptPickerOpen(false); }}
+                    tabIndex={0}
+                    role="radio"
+                    aria-checked={isActive}
+                    aria-label={`${script.title}: ${script.description}`}
+                  >
+                    <div style={styles.scriptHeader}>
+                      <span style={styles.scriptTitle}>{script.title}</span>
+                      <div style={styles.scriptMeta}>
+                        {script.difficulty && (
+                          <span style={{ ...styles.badge, color: diff.color, backgroundColor: diff.bg, borderColor: diff.border }}>
+                            {DIFFICULTY_LABELS[script.difficulty] ?? script.difficulty}
+                          </span>
+                        )}
+                        {script.estimatedMinutes && (
+                          <span style={styles.duration}>~{script.estimatedMinutes}m</span>
+                        )}
+                      </div>
+                    </div>
+                    <span style={styles.scriptDescription}>{script.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.sectionLabelRow}>
         <span style={styles.sectionLabel}>Choose a script</span>
-        <div style={styles.importButtonContainer}>
-          <a
-            href='javascript:;'
-            style={styles.importIconBtn}
-            onClick={() => { setImportOpen(true); setImportError(''); }}
-            title="Import scripts from JSON"
-            aria-label="Import scripts"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-          </a>
-          <a
-            href='javascript:;'
-            style={styles.importIconBtn}
-            onClick={openMarketplace}
-            title="Import scripts from Marketplace"
-            aria-label="Import scripts"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" xmlns="http://www.w3.org/2000/svg" aria-labelledby="extensionIconTitle" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 4C9 2.89543 9.89543 2 11 2C12.1046 2 13 2.89543 13 4V6H18V11H20C21.1046 11 22 11.8954 22 13C22 14.1046 21.1046 15 20 15H18V20H13V18C13 16.8954 12.1046 16 11 16C9.89543 16 9 16.8954 9 18V20H4V15H6C7.10457 15 8 14.1046 8 13C8 11.8954 7.10457 11 6 11H4V6H9V4Z" />
-            </svg>
-          </a>
-        </div>
       </div>
-      <div style={styles.scriptList}>
-        {allScripts.map((script) => {
-          const isActive = selectedId === script.id;
-          const diff = DIFFICULTY_COLORS[script.difficulty] || DIFFICULTY_COLORS.beginner;
 
-          return (
-            <button
-              key={script.id}
-              style={{
-                ...styles.scriptCard,
-                borderColor: isActive ? 'rgba(168,85,247,.4)' : 'var(--color-b2)',
-                backgroundColor: isActive ? 'rgba(168,85,247,.06)' : 'var(--color-s2)',
-                boxShadow: isActive ? '0 0 0 1px rgba(168,85,247,.2)' : 'none',
-              }}
-              onClick={() => handleSelect(script)}
-              tabIndex={0}
-              role="radio"
-              aria-checked={isActive}
-              aria-label={`${script.title}: ${script.description}`}
-            >
-              <div style={styles.scriptHeader}>
-                <span style={styles.scriptTitle}>{script.title}</span>
-                <div style={styles.scriptMeta}>
-                  {script._imported && (
-                    <span style={styles.customBadge}>Custom</span>
-                  )}
-                  {script.difficulty && (
-                    <span style={{
-                      ...styles.badge,
-                      color: diff.color,
-                      backgroundColor: diff.bg,
-                      borderColor: diff.border,
-                    }}>
-                      {DIFFICULTY_LABELS[script.difficulty] ?? script.difficulty}
+      <button
+        style={{
+          ...styles.scriptCard,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 'var(--space-3)',
+          borderColor: selectedScript ? 'rgba(168,85,247,.4)' : 'var(--color-b2)',
+          backgroundColor: selectedScript ? 'rgba(168,85,247,.06)' : 'var(--color-s2)',
+          boxShadow: selectedScript ? '0 0 0 1px rgba(168,85,247,.2)' : 'none',
+        }}
+        onClick={() => setScriptPickerOpen(true)}
+      >
+        {selectedScript ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+            <div style={styles.scriptHeader}>
+              <span style={styles.scriptTitle}>{selectedScript.title}</span>
+              <div style={styles.scriptMeta}>
+                {selectedScript._imported && <span style={styles.customBadge}>Custom</span>}
+                {selectedScript.difficulty && (() => {
+                  const diff = DIFFICULTY_COLORS[selectedScript.difficulty] || DIFFICULTY_COLORS.beginner;
+                  return (
+                    <span style={{ ...styles.badge, color: diff.color, backgroundColor: diff.bg, borderColor: diff.border }}>
+                      {DIFFICULTY_LABELS[selectedScript.difficulty] ?? selectedScript.difficulty}
                     </span>
-                  )}
-                  {script.estimatedMinutes && (
-                    <span style={styles.duration}>~{script.estimatedMinutes}m</span>
-                  )}
-                </div>
+                  );
+                })()}
+                {selectedScript.estimatedMinutes && (
+                  <span style={styles.duration}>~{selectedScript.estimatedMinutes}m</span>
+                )}
               </div>
-              <span style={styles.scriptDescription}>{script.description}</span>
-            </button>
-          );
-        })}
-      </div>
+            </div>
+            <span style={styles.scriptDescription}>{selectedScript.description}</span>
+          </div>
+        ) : (
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 'var(--text-sm)', color: 'var(--color-t4)' }}>
+            Select a script...
+          </span>
+        )}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-t4)', flexShrink: 0 }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
     </div>
   );
 }

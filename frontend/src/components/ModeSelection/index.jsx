@@ -218,6 +218,7 @@ export default function ModeSelection() {
   const [selectedModeId, setSelectedModeId] = useState(null);
   const [modeConfigData, setModeConfigData] = useState(null);
   const [startBtnAnimClass, setStartBtnAnimClass] = useState('');
+  const [configOverflow, setConfigOverflow] = useState('hidden');
   const prevCanStart = useRef(false);
 
   const selectedMode = MODES.find((m) => m.id === selectedModeId);
@@ -239,6 +240,7 @@ export default function ModeSelection() {
   const handleModeSelect = useCallback((modeId) => {
     setSelectedModeId(modeId);
     setModeConfigData(null);
+    setConfigOverflow('hidden');
   }, []);
 
   const handleConfigChange = useCallback((config) => {
@@ -333,9 +335,13 @@ export default function ModeSelection() {
         <div
           style={{
             ...styles.configPanel,
-            maxHeight: showConfig ? 500 : 0,
+            maxHeight: showConfig ? 800 : 0,
             opacity: showConfig ? 1 : 0,
             pointerEvents: showConfig ? 'auto' : 'none',
+            overflow: configOverflow,
+          }}
+          onTransitionEnd={() => {
+            if (showConfig) setConfigOverflow('visible');
           }}
         >
           <div style={styles.configInner}>
