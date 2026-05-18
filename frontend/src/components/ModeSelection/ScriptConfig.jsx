@@ -14,14 +14,14 @@ function loadCustomScripts() {
   try {
     const saved = localStorage.getItem(CUSTOM_SCRIPTS_KEY);
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { }
   return [];
 }
 
 function saveCustomScripts(scripts) {
   try {
     localStorage.setItem(CUSTOM_SCRIPTS_KEY, JSON.stringify(scripts));
-  } catch {}
+  } catch { }
 }
 
 function validateScripts(data) {
@@ -83,18 +83,22 @@ const styles = {
     letterSpacing: '.1em',
     textTransform: 'uppercase',
   },
+  importButtonContainer: {
+    display: 'flex',
+    gap: 6
+  },
   importIconBtn: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '18px',
-    height: '18px',
+    width: '24px',
+    height: '24px',
     borderRadius: 'var(--radius-sm)',
     border: '1px solid var(--color-b2)',
     backgroundColor: 'transparent',
     color: 'var(--color-t4)',
     cursor: 'pointer',
-    padding: 0,
+    padding: 4,
     transition: 'color 150ms, border-color 150ms, background-color 150ms',
     flexShrink: 0,
   },
@@ -113,8 +117,8 @@ const styles = {
     border: '1px solid var(--color-b2)',
     borderRadius: 'var(--radius-lg)',
     padding: 'var(--space-6)',
-    width: '360px',
-    maxWidth: '90vw',
+    width: '100%',
+    maxWidth: '40vw',
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-4)',
@@ -415,18 +419,32 @@ export default function ScriptConfig({ onConfigChange }) {
 
       <div style={styles.sectionLabelRow}>
         <span style={styles.sectionLabel}>Choose a script</span>
-        <button
-          style={styles.importIconBtn}
-          onClick={() => { setImportOpen(true); setImportError(''); }}
-          title="Import scripts from JSON"
-          aria-label="Import scripts"
-        >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-        </button>
+        <div style={styles.importButtonContainer}>
+          <a
+            href='javascript:;'
+            style={styles.importIconBtn}
+            onClick={() => { setImportOpen(true); setImportError(''); }}
+            title="Import scripts from JSON"
+            aria-label="Import scripts"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </a>
+          <a
+            href='javascript:;'
+            style={styles.importIconBtn}
+            onClick={() => { alert('Coming Soon!'); }}
+            title="Import scripts from Marketplace"
+            aria-label="Import scripts"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" xmlns="http://www.w3.org/2000/svg" aria-labelledby="extensionIconTitle" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 4C9 2.89543 9.89543 2 11 2C12.1046 2 13 2.89543 13 4V6H18V11H20C21.1046 11 22 11.8954 22 13C22 14.1046 21.1046 15 20 15H18V20H13V18C13 16.8954 12.1046 16 11 16C9.89543 16 9 16.8954 9 18V20H4V15H6C7.10457 15 8 14.1046 8 13C8 11.8954 7.10457 11 6 11H4V6H9V4Z" />
+            </svg>
+          </a>
+        </div>
       </div>
       <div style={styles.scriptList}>
         {allScripts.map((script) => {
@@ -470,31 +488,6 @@ export default function ScriptConfig({ onConfigChange }) {
                 </div>
               </div>
               <span style={styles.scriptDescription}>{script.description}</span>
-
-              <div style={styles.preview}>
-                {script.lines.slice(0, isActive ? script.lines.length : 2).map((line, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      ...styles.previewLine,
-                      filter: !isActive && i >= 2 ? 'blur(4px)' : 'none',
-                    }}
-                  >
-                    <span style={{
-                      ...styles.previewRole,
-                      color: line.role === 'ai' ? 'var(--color-green)' : 'var(--color-purple)',
-                    }}>
-                      {line.role === 'ai' ? 'AI' : 'You'}:
-                    </span>{' '}
-                    {line.text}
-                  </div>
-                ))}
-                {!isActive && script.lines.length > 2 && (
-                  <div style={{ ...styles.previewLine, filter: 'blur(4px)', userSelect: 'none' }}>
-                    {script.lines[2]?.role === 'ai' ? 'AI' : 'You'}: {script.lines[2]?.text}
-                  </div>
-                )}
-              </div>
             </button>
           );
         })}
