@@ -695,7 +695,6 @@ export default function ScriptConfig({ onConfigChange }) {
                     <div style={styles.scriptHeader}>
                       <span style={styles.scriptTitle}>{script.title}</span>
                       <div style={styles.scriptMeta}>
-                        {script._imported && <span style={styles.customBadge}>Custom</span>}
                         {script.difficulty && (
                           <span style={{ ...styles.badge, color: diff.color, backgroundColor: diff.bg, borderColor: diff.border }}>
                             {DIFFICULTY_LABELS[script.difficulty] ?? script.difficulty}
