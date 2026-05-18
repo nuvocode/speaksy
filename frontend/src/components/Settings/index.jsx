@@ -1,7 +1,7 @@
 /**
  * @module components/Settings
- * Settings panel — slides in from the right with a backdrop blur overlay.
- * Contains the ProviderForm for configuring AI, STT, and voice settings.
+ * Settings panel — slides in from the right.
+ * Nuvo Code dark design language.
  */
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
@@ -10,7 +10,6 @@ import useAppStore from '../../store/appStore.js';
 import ProviderForm from './ProviderForm.jsx';
 import { send } from '../../lib/wsClient.js';
 
-/** Panel width in pixels */
 const PANEL_WIDTH = 380;
 
 const styles = {
@@ -18,10 +17,10 @@ const styles = {
     position: 'fixed',
     inset: 0,
     zIndex: 100,
-    backgroundColor: 'rgba(26, 26, 46, 0.2)',
+    backgroundColor: 'rgba(0,0,0,.5)',
     backdropFilter: 'blur(8px)',
     WebkitBackdropFilter: 'blur(8px)',
-    transition: `opacity var(--duration-normal) var(--ease-out)`,
+    transition: 'opacity var(--duration-normal) var(--ease-out)',
   },
   panel: {
     position: 'fixed',
@@ -31,11 +30,11 @@ const styles = {
     width: PANEL_WIDTH,
     maxWidth: '100vw',
     zIndex: 101,
-    backgroundColor: 'var(--color-glass)',
-    backdropFilter: 'blur(var(--blur-glass))',
-    WebkitBackdropFilter: 'blur(var(--blur-glass))',
-    borderLeft: '1px solid var(--color-border)',
-    boxShadow: '-8px 0 32px rgba(26,26,46,0.12), var(--shadow-glass)',
+    backgroundColor: 'var(--color-s1)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderLeft: '1px solid var(--color-b2)',
+    boxShadow: '-8px 0 40px rgba(0,0,0,.5)',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -44,27 +43,42 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 'var(--space-6)',
-    borderBottom: '1px solid var(--color-border)',
+    borderBottom: '1px solid var(--color-b1)',
+  },
+  titleGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  titleLabel: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    color: 'var(--color-t4)',
+    letterSpacing: '.1em',
+    textTransform: 'uppercase',
   },
   title: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 'var(--text-xl)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-base)',
     fontWeight: 'var(--weight-semibold)',
-    color: 'var(--color-primary)',
+    color: 'var(--color-t1)',
+    letterSpacing: '-0.01em',
   },
   closeButton: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
+    minWidth: 32,
+    minHeight: 32,
     padding: 0,
-    background: 'none',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-md)',
+    background: 'var(--color-s2)',
+    border: '1px solid var(--color-b2)',
+    borderRadius: 'var(--radius-sm)',
     cursor: 'pointer',
-    color: 'var(--color-muted)',
-    transition: `all var(--duration-fast) var(--ease-out)`,
+    color: 'var(--color-t3)',
+    transition: 'all var(--duration-fast) var(--ease-out)',
   },
   body: {
     flex: 1,
@@ -73,20 +87,17 @@ const styles = {
   },
   footer: {
     padding: 'var(--space-4) var(--space-6)',
-    borderTop: '1px solid var(--color-border)',
+    borderTop: '1px solid var(--color-b1)',
     textAlign: 'center',
   },
   footerText: {
-    fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-xs)',
-    color: 'var(--color-muted)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    color: 'var(--color-t4)',
+    letterSpacing: '0.04em',
   },
 };
 
-/**
- * Settings slide-in panel component.
- * @returns {React.ReactElement|null}
- */
 export default function Settings() {
   const settingsOpen = useAppStore((s) => s.settingsOpen);
   const toggleSettings = useAppStore((s) => s.toggleSettings);
@@ -100,18 +111,13 @@ export default function Settings() {
   const prevSettingsRef = useRef(settings);
   const unmountTimerRef = useRef(null);
 
-  /**
-   * Handle open/close animation lifecycle.
-   */
   useEffect(() => {
     if (settingsOpen) {
-      // Clear any pending unmount
       if (unmountTimerRef.current) {
         clearTimeout(unmountTimerRef.current);
         unmountTimerRef.current = null;
       }
       setIsVisible(true);
-      // Defer to next frame so the DOM is mounted before animation starts
       requestAnimationFrame(() => setAnimClass('settings-entering'));
     } else {
       setAnimClass('settings-leaving');
@@ -121,33 +127,18 @@ export default function Settings() {
         unmountTimerRef.current = null;
       }, 250);
     }
-
     return () => {
-      if (unmountTimerRef.current) {
-        clearTimeout(unmountTimerRef.current);
-      }
+      if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
     };
   }, [settingsOpen]);
 
-  /**
-   * Close panel on Escape key.
-   */
   useEffect(() => {
     if (!settingsOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        toggleSettings();
-      }
-    };
-
+    const handleKeyDown = (e) => { if (e.key === 'Escape') toggleSettings(); };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [settingsOpen, toggleSettings]);
 
-  /**
-   * When settings change, sync to WebSocket backend.
-   */
   useEffect(() => {
     const prev = prevSettingsRef.current;
     if (
@@ -155,24 +146,13 @@ export default function Settings() {
       prev.aiModel !== settings.aiModel ||
       prev.voice !== settings.voice
     ) {
-      send('settings', {
-        provider: settings.aiProvider,
-        model: settings.aiModel,
-        voice: settings.voice,
-      });
+      send('settings', { provider: settings.aiProvider, model: settings.aiModel, voice: settings.voice });
     }
     prevSettingsRef.current = settings;
   }, [settings]);
 
-  /**
-   * Handle overlay click (close panel).
-   */
   const handleOverlayClick = useCallback(
-    (e) => {
-      if (e.target === e.currentTarget) {
-        toggleSettings();
-      }
-    },
+    (e) => { if (e.target === e.currentTarget) toggleSettings(); },
     [toggleSettings]
   );
 
@@ -180,7 +160,6 @@ export default function Settings() {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         style={{
           ...styles.overlay,
@@ -191,7 +170,6 @@ export default function Settings() {
         aria-hidden="true"
       />
 
-      {/* Panel */}
       <div
         ref={panelRef}
         className={animClass}
@@ -200,33 +178,32 @@ export default function Settings() {
         aria-modal="true"
         aria-label="Settings"
       >
-        {/* Header */}
         <div style={styles.header}>
-          <h2 style={styles.title}>Settings</h2>
+          <div style={styles.titleGroup}>
+            <span style={styles.titleLabel}>Configuration</span>
+            <h2 style={styles.title}>Settings</h2>
+          </div>
           <button
             style={{
               ...styles.closeButton,
-              backgroundColor: closeHover ? 'var(--color-accent-soft)' : undefined,
+              borderColor: closeHover ? 'var(--color-b3)' : 'var(--color-b2)',
+              color: closeHover ? 'var(--color-t1)' : 'var(--color-t3)',
             }}
             onClick={toggleSettings}
             onMouseEnter={() => setCloseHover(true)}
             onMouseLeave={() => setCloseHover(false)}
             aria-label="Close settings"
           >
-            <X size={18} />
+            <X size={14} />
           </button>
         </div>
 
-        {/* Body */}
         <div style={styles.body}>
           <ProviderForm />
         </div>
 
-        {/* Footer */}
         <div style={styles.footer}>
-          <p style={styles.footerText}>
-            Settings are saved automatically to your browser.
-          </p>
+          <p style={styles.footerText}>Settings saved to browser storage.</p>
         </div>
       </div>
     </>

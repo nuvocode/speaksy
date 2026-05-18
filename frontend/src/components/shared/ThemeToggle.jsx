@@ -1,120 +1,54 @@
 /**
  * @module components/shared/ThemeToggle
- * Pill-shaped toggle switch for dark/light theme.
- * Placed in the header alongside the settings icon.
- *
- * Uses data-theme attribute on <html> for CSS-driven theming.
+ * Minimal icon button for theme switching — dark-first design.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 
-const TOGGLE_W = 48;
-const TOGGLE_H = 26;
-const KNOB_SIZE = 20;
-const KNOB_OFFSET = 3;
-
 const styles = {
-  toggle: {
-    position: 'relative',
-    width: TOGGLE_W,
-    height: TOGGLE_H,
-    borderRadius: TOGGLE_H / 2,
-    border: 'none',
-    cursor: 'pointer',
-    padding: 0,
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'background 300ms var(--ease-out), box-shadow 300ms var(--ease-out)',
-    flexShrink: 0,
-  },
-  knob: {
-    position: 'absolute',
-    width: KNOB_SIZE,
-    height: KNOB_SIZE,
-    borderRadius: '50%',
-    backgroundColor: '#FFFFFF',
+  button: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'transform 300ms var(--ease-spring)',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-  },
-  icon: {
-    transition: 'transform 300ms var(--ease-out), opacity 300ms var(--ease-out)',
+    width: 36,
+    height: 36,
+    minWidth: 36,
+    minHeight: 36,
+    padding: 0,
+    background: 'var(--color-s2)',
+    border: '1px solid var(--color-b2)',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    color: 'var(--color-t3)',
+    transition: 'all var(--duration-fast) var(--ease-out)',
   },
 };
 
-/**
- * ThemeToggle component.
- * @returns {React.ReactElement}
- */
 export default function ThemeToggle() {
   const theme = useAppStore((s) => s.theme);
   const toggleTheme = useAppStore((s) => s.toggleTheme);
   const isDark = theme === 'dark';
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const handleToggle = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 300);
-    toggleTheme();
-  };
-
-  const toggleBg = isDark
-    ? 'linear-gradient(135deg, #2D2D5E, #1A1A3E)'
-    : 'linear-gradient(135deg, #FFB347, #FF8C00)';
-
-  const knobTranslate = isDark
-    ? `translateX(${TOGGLE_W - KNOB_SIZE - KNOB_OFFSET}px)`
-    : `translateX(${KNOB_OFFSET}px)`;
 
   return (
     <button
-      style={{
-        ...styles.toggle,
-        background: toggleBg,
-      }}
-      onClick={handleToggle}
+      style={styles.button}
+      onClick={toggleTheme}
       role="switch"
       aria-checked={isDark}
-      aria-label="Toggle dark mode"
+      aria-label="Toggle theme"
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+        e.currentTarget.style.borderColor = 'var(--color-b3)';
+        e.currentTarget.style.color = 'var(--color-t2)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.borderColor = 'var(--color-b2)';
+        e.currentTarget.style.color = 'var(--color-t3)';
       }}
     >
-      <span
-        style={{
-          ...styles.knob,
-          transform: knobTranslate,
-          ...(isAnimating && { animation: 'knobScale 300ms var(--ease-spring) both' }),
-        }}
-      >
-        {isDark ? (
-          <Moon
-            size={12}
-            color="#2D2D5E"
-            style={{
-              ...styles.icon,
-              transform: 'rotate(0deg) scale(1)',
-            }}
-          />
-        ) : (
-          <Sun
-            size={12}
-            color="#FF8C00"
-            style={{
-              ...styles.icon,
-              transform: 'rotate(0deg) scale(1)',
-            }}
-          />
-        )}
-      </span>
+      {isDark ? <Sun size={14} /> : <Moon size={14} />}
     </button>
   );
 }

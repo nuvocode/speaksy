@@ -1,11 +1,9 @@
 /**
  * @module components/ConversationScreen/MicButton
- * Microphone toggle button.
- *   - Idle: surface bg, border, mic icon
- *   - Listening: coral bg, white icon, pulse rings
- *   - AI speaking: disabled, dimmed, "AI is speaking..." label
- *
- * Reads speech state from Zustand and conversation actions from props.
+ * Microphone toggle button — Nuvo Code dark design language.
+ *   - Idle: dark surface, border, mic icon
+ *   - Listening: purple-pink gradient, pulse rings
+ *   - AI speaking: disabled, dimmed
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -13,10 +11,7 @@ import { Mic, MicOff } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import useSTT from '../../hooks/useSTT.js';
 
-/** Button diameter in pixels */
 const BUTTON_SIZE = 72;
-
-/** Pulse ring count */
 const RING_COUNT = 3;
 
 const styles = {
@@ -42,27 +37,26 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: `all var(--duration-normal) var(--ease-out)`,
+    transition: 'all var(--duration-normal) var(--ease-out)',
   },
   buttonIdle: {
-    backgroundColor: 'var(--color-surface)',
-    border: '2px solid var(--color-border)',
-    color: 'var(--color-primary)',
-    boxShadow: 'var(--shadow-glass)',
+    backgroundColor: 'var(--color-s2)',
+    border: '1px solid var(--color-b3)',
+    color: 'var(--color-t2)',
+    boxShadow: '0 0 0 1px var(--color-b2)',
   },
   buttonListening: {
-    background: 'var(--gradient-user)',
-    border: '2px solid var(--color-user)',
+    background: 'var(--grad)',
+    border: '2px solid rgba(168,85,247,.6)',
     color: '#FFFFFF',
-    boxShadow: '0 0 24px rgba(255, 107, 107, 0.4), var(--shadow-glass)',
+    boxShadow: '0 0 0 1px rgba(168,85,247,.4), 0 0 32px rgba(168,85,247,.35)',
   },
   buttonDisabled: {
-    backgroundColor: 'var(--color-surface)',
-    border: '2px solid var(--color-border)',
-    color: 'var(--color-muted)',
+    backgroundColor: 'var(--color-s1)',
+    border: '1px solid var(--color-b1)',
+    color: 'var(--color-t4)',
     opacity: 0.4,
     cursor: 'not-allowed',
-    filter: 'grayscale(60%)',
   },
   ring: {
     position: 'absolute',
@@ -71,26 +65,23 @@ const styles = {
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: 'var(--radius-full)',
-    border: '2px solid var(--color-user)',
+    border: '1px solid rgba(168,85,247,.5)',
     animation: 'pulseRing 1.5s ease-out infinite',
     zIndex: 1,
     pointerEvents: 'none',
   },
   label: {
-    fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-xs)',
-    color: 'var(--color-muted)',
-    fontWeight: 'var(--weight-medium)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    color: 'var(--color-t4)',
+    fontWeight: 'var(--weight-regular)',
     textAlign: 'center',
     minHeight: 'var(--text-base)',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
   },
 };
 
-/**
- * MicButton component.
- * @param {{ sendMessage: function(string): void, isAIBusy?: boolean, busyLabel?: string }} props
- * @returns {React.ReactElement}
- */
 export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = 'Thinking...' }) {
   const isAISpeaking = useAppStore((s) => s.isAISpeaking);
   const wsStatus = useAppStore((s) => s.wsStatus);
@@ -120,15 +111,10 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
 
   const isDisabled = isAISpeaking || isAIBusy || wsStatus !== 'connected';
 
-  /**
-   * Toggle listening state.
-   */
   const handleClick = useCallback(() => {
     if (isDisabled) return;
-
     if (isListening) {
       stopListening();
-      /* If Web Speech API didn't fire a final event, send what we have */
       if (transcriptRef.current.trim()) {
         sendMessage(transcriptRef.current.trim());
         transcriptRef.current = '';
@@ -138,19 +124,14 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
     }
   }, [isDisabled, isListening, startListening, stopListening, sendMessage]);
 
-  /* Determine visual state */
   let buttonStyle;
   let statusLabel = '';
 
   if (isDisabled) {
     buttonStyle = styles.buttonDisabled;
-    if (wsStatus !== 'connected') {
-      statusLabel = 'Not connected';
-    } else if (isAISpeaking) {
-      statusLabel = 'AI is speaking...';
-    } else {
-      statusLabel = busyLabel;
-    }
+    if (wsStatus !== 'connected') statusLabel = 'Not connected';
+    else if (isAISpeaking) statusLabel = 'AI is speaking...';
+    else statusLabel = busyLabel;
   } else if (isListening) {
     buttonStyle = styles.buttonListening;
     statusLabel = 'Listening...';
@@ -162,17 +143,9 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
   return (
     <div style={styles.container}>
       <div style={styles.buttonWrapper}>
-        {/* Pulse rings (only when listening) */}
         {isListening &&
           Array.from({ length: RING_COUNT }, (_, i) => (
-            <span
-              key={i}
-              style={{
-                ...styles.ring,
-                animationDelay: `${i * 0.4}s`,
-              }}
-              aria-hidden="true"
-            />
+            <span key={i} style={{ ...styles.ring, animationDelay: `${i * 0.4}s` }} aria-hidden="true" />
           ))}
 
         <button
@@ -182,15 +155,19 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
           disabled={isDisabled && !isListening}
           aria-label={isListening ? 'Stop recording' : 'Start recording'}
           onMouseEnter={(e) => {
-            if (!isDisabled) {
+            if (!isDisabled && !isListening) {
+              e.currentTarget.style.borderColor = 'rgba(168,85,247,.5)';
               e.currentTarget.style.transform = 'scale(1.05)';
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
+            if (!isListening) {
+              e.currentTarget.style.borderColor = 'var(--color-b3)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }
           }}
         >
-          {isListening ? <MicOff size={28} /> : <Mic size={28} />}
+          {isListening ? <MicOff size={26} /> : <Mic size={26} />}
         </button>
       </div>
 

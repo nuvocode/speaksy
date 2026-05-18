@@ -1,141 +1,160 @@
 /**
- * Design Tokens — Speaksy
- * All colors, typography, spacing, shadows, and transitions
- * are defined here as CSS custom properties. No component
- * should use hardcoded values.
+ * Design Tokens — Lingua AI
+ * Dark design system based on Nuvo Code visual language.
+ * All values derived from index.html design exploration board.
  */
 
 :root {
-  /* ── Colors ────────────────────────────────────── */
-  --color-bg: #FAFAF7;
-  --color-surface: #FFFFFF;
-  --color-surface-2: #F0F0F5;
-  --color-primary: #1A1A2E;
-  --color-accent: #6C63FF;
-  --color-ai: #00C896;
-  --color-user: #FF6B6B;
-  --color-muted: #8E8E9A;
-  --color-border: #EBEBF0;
-  --color-border-strong: #D0D0DA;
+  /* ── Background Layers ─────────────────────── */
+  --color-bg:        #09090b;
+  --color-s1:        #111113;
+  --color-s2:        #18181b;
+  --color-s3:        #1f1f23;
 
-  /* Gradients */
-  --gradient-user: linear-gradient(135deg, #FF6B6B, #FF8E53);
-  --gradient-ai: linear-gradient(135deg, #00C896, #00E5B0);
+  /* ── Border Scale ──────────────────────────── */
+  --color-b1:        #1a1a1e;
+  --color-b2:        #27272a;
+  --color-b3:        #3f3f46;
 
-  /* Status */
-  --color-success: #00C896;
-  --color-warning: #F5A623;
-  --color-error: #FF4757;
+  /* ── Text Scale ────────────────────────────── */
+  --color-t1:        #fafafa;
+  --color-t2:        #a1a1aa;
+  --color-t3:        #71717a;
+  --color-t4:        #52525b;
 
-  /* ── Typography ────────────────────────────────── */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* ── Accent Palette ────────────────────────── */
+  --color-purple:    #a855f7;
+  --color-pink:      #ec4899;
+  --color-blue:      #60a5fa;
+  --color-green:     #4ade80;
+  --color-amber:     #fbbf24;
+  --color-red:       #f87171;
 
-  --text-xs: 0.75rem;    /* 12px */
-  --text-sm: 0.875rem;   /* 14px */
-  --text-base: 1rem;     /* 16px */
-  --text-lg: 1.125rem;   /* 18px */
-  --text-xl: 1.25rem;    /* 20px */
-  --text-2xl: 1.5rem;    /* 24px */
-  --text-3xl: 2rem;      /* 32px */
+  /* ── Gradients ─────────────────────────────── */
+  --grad:            linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --grad-r:          linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+  --grad-cool:       linear-gradient(135deg, #818cf8 0%, #a855f7 100%);
+  --grad-warm:       linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+  --grad-dim:        linear-gradient(135deg, rgba(168,85,247,.1) 0%, rgba(236,72,153,.1) 100%);
+  --grad-green:      linear-gradient(135deg, #4ade80 0%, #22d3ee 100%);
 
-  --weight-regular: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  /* ── Legacy Aliases (used by existing components) ── */
+  --color-surface:        var(--color-s1);
+  --color-surface-2:      var(--color-s2);
+  --color-primary:        var(--color-t1);
+  --color-accent:         var(--color-purple);
+  --color-ai:             var(--color-green);
+  --color-user:           var(--color-purple);
+  --color-muted:          var(--color-t3);
+  --color-border:         var(--color-b2);
+  --color-border-strong:  var(--color-b3);
 
-  --leading-tight: 1.2;
-  --leading-normal: 1.5;
+  --color-success:        var(--color-green);
+  --color-warning:        var(--color-amber);
+  --color-error:          var(--color-red);
+
+  --gradient-user:        var(--grad);
+  --gradient-ai:          var(--grad-green);
+
+  /* ── Glass Surfaces ────────────────────────── */
+  --color-glass:          rgba(255, 255, 255, 0.03);
+  --color-glass-md:       rgba(255, 255, 255, 0.05);
+  --color-glass-dark:     rgba(9, 9, 11, 0.6);
+  --color-glass-border:   rgba(255, 255, 255, 0.06);
+  --color-glass-border-md: rgba(255, 255, 255, 0.09);
+  --blur-glass:           16px;
+  --shadow-glass:         0 0 0 1px rgba(255,255,255,.06), 0 8px 32px rgba(0,0,0,.5);
+
+  /* ── Accent Soft Tint ──────────────────────── */
+  --color-accent-soft:    rgba(168, 85, 247, 0.1);
+
+  /* ── Typography ────────────────────────────── */
+  --font-display:   'Inter', system-ui, sans-serif;
+  --font-ui:        'Inter', system-ui, sans-serif;
+  --font-mono:      'JetBrains Mono', monospace;
+
+  --text-xs:    0.75rem;
+  --text-sm:    0.875rem;
+  --text-base:  1rem;
+  --text-lg:    1.125rem;
+  --text-xl:    1.25rem;
+  --text-2xl:   1.5rem;
+  --text-3xl:   2rem;
+  --text-4xl:   2.5rem;
+
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+
+  --leading-tight:   1.2;
+  --leading-normal:  1.5;
   --leading-relaxed: 1.7;
+  --letter-spacing-tight: -0.025em;
 
-  /* ── Spacing ───────────────────────────────────── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
+  /* ── Spacing ───────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-14:  56px;
+  --space-16:  64px;
+  --space-20:  80px;
 
-  /* ── Border Radius ─────────────────────────────── */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  /* ── Border Radius ─────────────────────────── */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
   --radius-full: 9999px;
 
-  /* ── Shadows ───────────────────────────────────── */
-  --shadow-sm: 0 1px 3px rgba(26, 26, 46, 0.06), 0 1px 2px rgba(26, 26, 46, 0.04);
-  --shadow-md: 0 4px 16px rgba(26, 26, 46, 0.08), 0 2px 6px rgba(26, 26, 46, 0.04);
-  --shadow-lg: 0 12px 40px rgba(26, 26, 46, 0.12);
+  /* ── Shadows ───────────────────────────────── */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+  --shadow-lg:  0 12px 40px rgba(0,0,0,0.7);
 
-  /* ── Transitions ───────────────────────────────── */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 150ms;
+  /* ── Transitions ───────────────────────────── */
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:   150ms;
   --duration-normal: 250ms;
-  --duration-slow: 500ms;
+  --duration-slow:   500ms;
   --duration-slower: 800ms;
-
-  /* ── Glass Surfaces ────────────────────────────── */
-  --color-glass: rgba(255, 255, 255, 0.72);
-  --color-glass-border: rgba(255, 255, 255, 0.45);
-  --blur-glass: 16px;
-  --shadow-glass: 0 8px 32px rgba(26,26,46,0.08), 0 1px 0 rgba(255,255,255,0.6) inset;
-
-  /* ── Accent Soft Tint ──────────────────────────── */
-  --color-accent-soft: rgba(108, 99, 255, 0.12);
-
-  /* ── Background Gradients ──────────────────────── */
-  --gradient-bg-light: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.06) 0%, transparent 60%),
-                       radial-gradient(ellipse at 80% 20%, rgba(0,200,150,0.05) 0%, transparent 50%),
-                       #F8F7FF;
-  --gradient-bg-dark:  radial-gradient(ellipse at 20% 50%, rgba(124,115,255,0.08) 0%, transparent 60%),
-                       radial-gradient(ellipse at 80% 20%, rgba(0,223,168,0.06) 0%, transparent 50%),
-                       #0F0F14;
-
-  /* ── Extended Typography ───────────────────────── */
-  --text-4xl: 2.5rem;             /* 40px */
-  --letter-spacing-tight: -0.02em;
-
-  /* ── Extended Spacing ──────────────────────────── */
-  --space-14: 56px;
-  --space-20: 80px;
 }
 
-/* ── Dark Mode ───────────────────────────────────── */
+/* ── Dark Mode (same as root — dark-first design) ── */
 [data-theme="dark"] {
-  --color-bg: #0F0F14;
-  --color-surface: #1A1A24;
-  --color-surface-2: #24243A;
-  --color-primary: #F0F0F8;
-  --color-accent: #7C73FF;
-  --color-ai: #00DFA8;
-  --color-user: #FF7A7A;
-  --color-muted: #6E6E8A;
-  --color-border: #2A2A40;
-  --color-border-strong: #3A3A58;
+  --color-bg:        #09090b;
+  --color-s1:        #111113;
+  --color-s2:        #18181b;
+  --color-s3:        #1f1f23;
+  --color-b1:        #1a1a1e;
+  --color-b2:        #27272a;
+  --color-b3:        #3f3f46;
+  --color-t1:        #fafafa;
+  --color-t2:        #a1a1aa;
+  --color-t3:        #71717a;
+  --color-t4:        #52525b;
+}
 
-  --gradient-user: linear-gradient(135deg, #FF7A7A, #FF9E6D);
-  --gradient-ai: linear-gradient(135deg, #00DFA8, #00F5C0);
-
-  --color-success: #00DFA8;
-  --color-warning: #FFB347;
-  --color-error: #FF6B7A;
-
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
-
-  /* ── Dark Glass & Gradient Overrides ───────────── */
-  --color-glass: rgba(26, 26, 46, 0.72);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --shadow-glass: 0 8px 32px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset;
-  --color-accent-soft: rgba(124, 115, 255, 0.15);
-  --gradient-bg-dark:  radial-gradient(ellipse at 20% 50%, rgba(124,115,255,0.08) 0%, transparent 60%),
-                       radial-gradient(ellipse at 80% 20%, rgba(0,223,168,0.06) 0%, transparent 50%),
-                       #0F0F14;
+/* ── Light Mode (muted dark — preserves dark aesthetic) ── */
+[data-theme="light"] {
+  --color-bg:        #0d0d10;
+  --color-s1:        #141417;
+  --color-s2:        #1c1c20;
+  --color-s3:        #242428;
+  --color-b1:        #1e1e22;
+  --color-b2:        #2c2c30;
+  --color-b3:        #464650;
+  --color-t1:        #f0f0f5;
+  --color-t2:        #9a9aaa;
+  --color-t3:        #6a6a7a;
+  --color-t4:        #4a4a5a;
 }

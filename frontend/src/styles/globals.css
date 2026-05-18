@@ -1,6 +1,6 @@
 /**
- * Global Styles — Speaksy
- * Base resets, typography defaults, and layout primitives.
+ * Global Styles — Lingua AI
+ * Dark-first design aligned with Nuvo Code visual language.
  */
 
 @import './tokens.css';
@@ -20,6 +20,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
 html[data-theme-loaded] {
@@ -30,18 +31,14 @@ body {
   font-family: var(--font-ui);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  color: var(--color-primary);
-  background: var(--gradient-bg-light);
-  background-size: 200% 200%;
+  color: var(--color-t1);
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
   min-height: 100dvh;
   overflow: hidden;
-  transition: background 400ms var(--ease-in-out);
-  animation: ambientShift 12s ease infinite;
-}
-
-[data-theme="dark"] body {
-  background: var(--gradient-bg-dark);
-  background-size: 200% 200%;
 }
 
 #root {
@@ -52,19 +49,21 @@ body {
 
 /* ── Typography ──────────────────────────────────── */
 h1, h2, h3, h4 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-purple);
   text-decoration: none;
 }
 
 /* ── Scrollbar ───────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -72,24 +71,24 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-b3);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-muted);
+  background: var(--color-t4);
 }
 
 /* ── Focus ───────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-purple);
   outline-offset: 2px;
 }
 
 /* ── Selection ───────────────────────────────────── */
 ::selection {
-  background-color: rgba(108, 99, 255, 0.2);
-  color: var(--color-primary);
+  background-color: rgba(168, 85, 247, 0.25);
+  color: var(--color-t1);
 }
 
 /* ── Utilities ───────────────────────────────────── */
@@ -105,11 +104,27 @@ a {
   border: 0;
 }
 
-/* ── Ambient Background Animation ───────────────── */
-@keyframes ambientShift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* ── Gradient Text ───────────────────────────────── */
+.grad-text {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glass Surface Utilities ─────────────────────── */
+.glass {
+  background: var(--color-glass);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  border: 1px solid var(--color-glass-border);
+}
+
+.glass-md {
+  background: var(--color-glass-md);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border-md);
 }
 
 /* ── Reduced Motion ──────────────────────────────── */
@@ -119,7 +134,8 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .glass-surface {
+  .glass,
+  .glass-md {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }

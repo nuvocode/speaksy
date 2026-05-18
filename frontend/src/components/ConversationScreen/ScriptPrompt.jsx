@@ -1,12 +1,6 @@
 /**
  * @module components/ConversationScreen/ScriptPrompt
- * Teleprompter-style bar showing the current script line.
- * Displayed above the message area in Script Based mode.
- *
- * - Shows the user's next expected line in italics
- * - Displays current/total line counter
- * - When the current line is an AI line, shows "AI is speaking..."
- * - When all lines are done, shows completion message
+ * Teleprompter-style bar for Script Based mode — Nuvo Code dark design.
  */
 
 import React from 'react';
@@ -18,11 +12,12 @@ const styles = {
     alignItems: 'flex-start',
     gap: 'var(--space-3)',
     padding: 'var(--space-3) var(--space-4)',
-    backgroundColor: 'var(--color-surface-2)',
-    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'var(--color-s1)',
+    borderRadius: 'var(--radius-md)',
     margin: '0 var(--space-6)',
     marginTop: 'var(--space-2)',
-    borderLeft: '3px solid var(--color-accent)',
+    border: '1px solid var(--color-b2)',
+    borderLeft: '3px solid var(--color-purple)',
     flexShrink: 0,
     animation: 'fadeInUp 300ms var(--ease-out) both',
   },
@@ -38,47 +33,46 @@ const styles = {
     justifyContent: 'space-between',
   },
   label: {
-    fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-xs)',
-    fontWeight: 'var(--weight-semibold)',
-    color: 'var(--color-muted)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    fontWeight: 'var(--weight-medium)',
+    color: 'var(--color-t4)',
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-1)',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
   },
   counter: {
-    fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-xs)',
-    fontWeight: 'var(--weight-medium)',
-    color: 'var(--color-muted)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    color: 'var(--color-t4)',
+    letterSpacing: '0.06em',
   },
   lineText: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 'var(--text-base)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-sm)',
     fontStyle: 'italic',
-    color: 'var(--color-primary)',
+    color: 'var(--color-t1)',
     lineHeight: 'var(--leading-relaxed)',
   },
   completedText: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 'var(--text-lg)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-base)',
     fontWeight: 'var(--weight-semibold)',
-    color: 'var(--color-ai)',
+    color: 'var(--color-green)',
     textAlign: 'center',
     padding: 'var(--space-2) 0',
+    letterSpacing: '-0.01em',
   },
   aiSpeaking: {
-    fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-sm)',
-    color: 'var(--color-ai)',
-    fontStyle: 'italic',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '11px',
+    color: 'var(--color-green)',
+    letterSpacing: '0.04em',
   },
 };
 
-/**
- * ScriptPrompt component.
- * @returns {React.ReactElement|null}
- */
 export default function ScriptPrompt() {
   const activeMode = useAppStore((s) => s.activeMode);
 
@@ -92,7 +86,7 @@ export default function ScriptPrompt() {
     return (
       <div style={styles.container}>
         <div style={{ ...styles.content, alignItems: 'center' }}>
-          <span style={styles.completedText}>Script completed! 🎉</span>
+          <span style={styles.completedText}>Script completed!</span>
         </div>
       </div>
     );
@@ -106,10 +100,10 @@ export default function ScriptPrompt() {
       <div style={styles.content}>
         <div style={styles.header}>
           <span style={styles.label}>
-            📄 {isAILine ? 'AI is speaking...' : 'Your line:'}
+            {isAILine ? '→ AI speaking' : '→ Your line'}
           </span>
           <span style={styles.counter}>
-            [{currentLine + 1} / {totalLines}]
+            [{currentLine + 1}/{totalLines}]
           </span>
         </div>
         {!isAILine && (

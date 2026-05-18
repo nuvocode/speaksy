@@ -1,10 +1,6 @@
 /**
  * @module components/ModeSelection
  * Mode selection screen — entry point of the application.
- * Users choose between Free Style, Topic Based, and Script Based modes.
- *
- * Architecture: Data-driven — add new modes by appending to the MODES array.
- * Each mode with hasConfig: true requires a matching configComponent.
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -17,17 +13,13 @@ import ModeCard from './ModeCard.jsx';
 import TopicConfig from './TopicConfig.jsx';
 import ScriptConfig from './ScriptConfig.jsx';
 
-/**
- * Mode definitions — data-driven, extensible array.
- * To add a new mode, append an object here and create its config component.
- */
 const MODES = [
   {
     id: 'freestyle',
     label: 'Free Style',
     description: 'Open-ended conversation on any topic',
     icon: 'MessageCircle',
-    color: '--color-accent',
+    color: '--color-purple',
     hasConfig: false,
   },
   {
@@ -35,7 +27,7 @@ const MODES = [
     label: 'Topic Based',
     description: 'Deep dive into a specific subject',
     icon: 'BookOpen',
-    color: '--color-ai',
+    color: '--color-green',
     hasConfig: true,
     configComponent: 'TopicConfig',
   },
@@ -44,17 +36,13 @@ const MODES = [
     label: 'Script Based',
     description: 'Practice with structured dialogues',
     icon: 'FileText',
-    color: '--color-user',
+    color: '--color-blue',
     hasConfig: true,
     configComponent: 'ScriptConfig',
   },
 ];
 
-/** Map config component names to actual components */
-const CONFIG_COMPONENTS = {
-  TopicConfig,
-  ScriptConfig,
-};
+const CONFIG_COMPONENTS = { TopicConfig, ScriptConfig };
 
 const styles = {
   container: {
@@ -65,17 +53,16 @@ const styles = {
     overflow: 'hidden',
   },
 
-  /* ── Header ────────────────────────────────── */
   header: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 'var(--space-4) var(--space-6)',
-    backgroundColor: 'var(--color-glass)',
-    backdropFilter: 'blur(var(--blur-glass))',
-    WebkitBackdropFilter: 'blur(var(--blur-glass))',
-    borderBottom: '1px solid var(--color-glass-border)',
-    boxShadow: 'var(--shadow-glass)',
+    padding: '0 var(--space-8)',
+    height: 54,
+    backgroundColor: 'rgba(9,9,11,.85)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    borderBottom: '1px solid var(--color-b1)',
     flexShrink: 0,
     position: 'sticky',
     top: 0,
@@ -99,55 +86,81 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
+    minWidth: 36,
+    minHeight: 36,
     padding: 0,
-    background: 'none',
-    border: '1px solid var(--color-border)',
+    background: 'var(--color-s2)',
+    border: '1px solid var(--color-b2)',
     borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
-    color: 'var(--color-muted)',
+    color: 'var(--color-t3)',
     transition: 'all var(--duration-fast) var(--ease-out)',
   },
 
-  /* ── Content ───────────────────────────────── */
   content: {
     flex: 1,
     overflowY: 'auto',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    paddingTop: 'var(--space-14)',
+    paddingTop: 'var(--space-16)',
     paddingBottom: 'var(--space-10)',
     paddingLeft: 'var(--space-6)',
     paddingRight: 'var(--space-6)',
     gap: 'var(--space-8)',
   },
+
   greeting: {
     textAlign: 'center',
     display: 'flex',
     flexDirection: 'column',
+    gap: 'var(--space-3)',
+  },
+  badge: {
+    display: 'inline-flex',
+    alignItems: 'center',
     gap: 'var(--space-2)',
+    padding: '5px 12px',
+    borderRadius: 'var(--radius-full)',
+    background: 'var(--grad-dim)',
+    border: '1px solid rgba(168,85,247,.2)',
+    marginBottom: 'var(--space-2)',
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: 'var(--color-purple)',
+    boxShadow: '0 0 7px rgba(168,85,247,.55)',
+    animation: 'pulseO2 2.5s ease-in-out infinite',
+  },
+  badgeText: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    letterSpacing: '.1em',
+    color: 'var(--color-purple)',
   },
   greetingTitle: {
-    fontFamily: 'var(--font-display)',
+    fontFamily: 'var(--font-ui)',
     fontSize: 'var(--text-4xl)',
-    fontWeight: 'var(--weight-bold)',
-    background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+    fontWeight: 'var(--weight-extrabold)',
+    letterSpacing: '-0.04em',
+    lineHeight: 1,
+    background: 'var(--grad)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
-    letterSpacing: 'var(--letter-spacing-tight)',
-    lineHeight: 'var(--leading-tight)',
   },
   greetingSubtitle: {
     fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-lg)',
-    color: 'var(--color-muted)',
+    fontSize: 'var(--text-base)',
+    color: 'var(--color-t3)',
     fontWeight: 'var(--weight-regular)',
+    letterSpacing: '-0.01em',
   },
 
-  /* ── Cards ─────────────────────────────────── */
   cardsContainer: {
     display: 'flex',
     gap: 'var(--space-4)',
@@ -157,7 +170,6 @@ const styles = {
     width: '100%',
   },
 
-  /* ── Config Panel ──────────────────────────── */
   configPanel: {
     width: '100%',
     maxWidth: 600,
@@ -166,32 +178,27 @@ const styles = {
   },
   configInner: {
     padding: 'var(--space-6)',
-    backgroundColor: 'var(--color-surface)',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
-    boxShadow: 'var(--shadow-sm)',
+    backgroundColor: 'var(--color-s1)',
+    borderRadius: 'var(--radius-xl)',
+    border: '1px solid var(--color-b2)',
+    boxShadow: 'var(--shadow-md)',
   },
 
-  /* ── Start Button ──────────────────────────── */
   startButton: {
-    padding: 'var(--space-4) var(--space-8)',
+    padding: 'var(--space-3) var(--space-10)',
     borderRadius: 'var(--radius-full)',
     border: 'none',
-    background: 'var(--gradient-user)',
+    background: 'var(--grad)',
     color: '#FFFFFF',
     fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-base)',
+    fontSize: 'var(--text-sm)',
     fontWeight: 'var(--weight-semibold)',
     cursor: 'pointer',
-    transition: 'all 250ms var(--ease-out)',
-    boxShadow: 'var(--shadow-sm)',
+    transition: 'all var(--duration-normal) var(--ease-out)',
+    letterSpacing: '-0.01em',
   },
 };
 
-/**
- * ModeSelection screen component.
- * @returns {React.ReactElement}
- */
 export default function ModeSelection() {
   const wsStatus = useAppStore((s) => s.wsStatus);
   const toggleSettings = useAppStore((s) => s.toggleSettings);
@@ -204,7 +211,6 @@ export default function ModeSelection() {
 
   const selectedMode = MODES.find((m) => m.id === selectedModeId);
 
-  /** Whether the start button should be enabled */
   const canStart = (() => {
     if (!selectedMode) return false;
     if (!selectedMode.hasConfig) return true;
@@ -221,7 +227,7 @@ export default function ModeSelection() {
 
   const handleModeSelect = useCallback((modeId) => {
     setSelectedModeId(modeId);
-    setModeConfigData(null); // reset config when switching modes
+    setModeConfigData(null);
   }, []);
 
   const handleConfigChange = useCallback((config) => {
@@ -230,23 +236,12 @@ export default function ModeSelection() {
 
   const handleStart = useCallback(() => {
     if (!selectedMode || !canStart) return;
-
-    /** @type {ModeConfig} */
-    const modeConfig = {
-      type: selectedMode.id,
-      label: selectedMode.label,
-    };
-
-    if (selectedMode.id === 'topic' && modeConfigData) {
-      modeConfig.topicConfig = modeConfigData;
-    } else if (selectedMode.id === 'script' && modeConfigData) {
-      modeConfig.scriptConfig = modeConfigData;
-    }
-
+    const modeConfig = { type: selectedMode.id, label: selectedMode.label };
+    if (selectedMode.id === 'topic' && modeConfigData) modeConfig.topicConfig = modeConfigData;
+    else if (selectedMode.id === 'script' && modeConfigData) modeConfig.scriptConfig = modeConfigData;
     startSession(modeConfig);
   }, [selectedMode, canStart, modeConfigData, startSession]);
 
-  /** Render the config component for the selected mode */
   const renderConfig = () => {
     if (!selectedMode?.hasConfig || !selectedMode.configComponent) return null;
     const ConfigComponent = CONFIG_COMPONENTS[selectedMode.configComponent];
@@ -263,11 +258,9 @@ export default function ModeSelection() {
         <div style={styles.headerLeft}>
           <Logo />
         </div>
-
         <div style={styles.headerCenter}>
           <StatusIndicator status={wsStatus} />
         </div>
-
         <div style={styles.headerRight}>
           <ThemeToggle />
           <button
@@ -275,18 +268,22 @@ export default function ModeSelection() {
             onClick={toggleSettings}
             aria-label="Open settings"
             title="Settings"
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-            onMouseDown={(e) => {
-              e.currentTarget.classList.add('animate-spring-press');
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-b3)';
+              e.currentTarget.style.color = 'var(--color-t2)';
             }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-b2)';
+              e.currentTarget.style.color = 'var(--color-t3)';
+            }}
+            onMouseDown={(e) => e.currentTarget.classList.add('animate-spring-press')}
             onMouseUp={(e) => {
               const btn = e.currentTarget;
               setTimeout(() => btn.classList.remove('animate-spring-press'), 250);
             }}
-            onAnimationEnd={(e) => { e.currentTarget.classList.remove('animate-spring-press'); }}
+            onAnimationEnd={(e) => e.currentTarget.classList.remove('animate-spring-press')}
           >
-            <SettingsIcon size={18} />
+            <SettingsIcon size={14} />
           </button>
         </div>
       </header>
@@ -295,8 +292,14 @@ export default function ModeSelection() {
       <div style={styles.content}>
         {/* Greeting */}
         <div style={styles.greeting} className="animate-fade-in-up">
-          <h1 style={styles.greetingTitle}>Welcome back.</h1>
-          <p style={styles.greetingSubtitle}>What shall we practice today?</p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={styles.badge}>
+              <span style={styles.badgeDot} />
+              <span style={styles.badgeText}>AI SPEAKING PRACTICE</span>
+            </div>
+          </div>
+          <h1 style={styles.greetingTitle}>What shall we practice?</h1>
+          <p style={styles.greetingSubtitle}>Choose a conversation mode to begin your session.</p>
         </div>
 
         {/* Mode Cards */}
@@ -316,7 +319,7 @@ export default function ModeSelection() {
           ))}
         </div>
 
-        {/* Config Panel (expandable) */}
+        {/* Config Panel */}
         <div
           style={{
             ...styles.configPanel,
@@ -335,15 +338,20 @@ export default function ModeSelection() {
           <button
             style={{
               ...styles.startButton,
-              opacity: canStart ? 1 : 0.5,
+              opacity: canStart ? 1 : 0.4,
               cursor: canStart ? 'pointer' : 'not-allowed',
               transform: canStart ? 'scale(1)' : 'scale(0.97)',
+              boxShadow: canStart ? '0 0 24px rgba(168,85,247,.3)' : 'none',
             }}
             onClick={handleStart}
             disabled={!canStart}
             className={`animate-fade-in-up${startBtnAnimClass ? ` ${startBtnAnimClass}` : ''}`}
-            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(255,107,107,0.4)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
+            onMouseEnter={(e) => {
+              if (canStart) e.currentTarget.style.boxShadow = '0 0 40px rgba(168,85,247,.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = canStart ? '0 0 24px rgba(168,85,247,.3)' : 'none';
+            }}
           >
             Start Conversation
           </button>

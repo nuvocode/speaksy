@@ -1,12 +1,10 @@
 /**
  * @module components/ConversationScreen/MessageBubble
- * Chat message bubble component.
- *   - AI messages: left-aligned, surface bg, green accent border
- *   - User messages: right-aligned, accent bg, white text
- *   - Streaming mode: blinking cursor at end
- *   - Timestamp visible on hover
+ * Chat message bubble — Nuvo Code dark design language.
+ *   - AI messages: left-aligned, dark glass surface, green left-border accent
+ *   - User messages: right-aligned, purple-pink gradient
  *
- * @param {{ message: { id: string, role: 'user'|'ai', text: string, timestamp: number, isStreaming: boolean } }} props
+ * @param {{ message: { id, role, text, timestamp, isStreaming } }} props
  */
 
 import React, { useState } from 'react';
@@ -17,45 +15,41 @@ const styles = {
     width: '100%',
     marginBottom: 'var(--space-3)',
   },
-  wrapperUser: {
-    justifyContent: 'flex-end',
-  },
-  wrapperAI: {
-    justifyContent: 'flex-start',
-  },
+  wrapperUser: { justifyContent: 'flex-end' },
+  wrapperAI: { justifyContent: 'flex-start' },
+
   bubble: {
     position: 'relative',
     maxWidth: '80%',
-    padding: 'var(--space-4) var(--space-5)',
+    padding: 'var(--space-3) var(--space-4)',
     fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-base)',
+    fontSize: 'var(--text-sm)',
     lineHeight: 'var(--leading-relaxed)',
     wordBreak: 'break-word',
   },
   bubbleAI: {
-    backgroundColor: 'var(--color-glass)',
-    backdropFilter: 'blur(var(--blur-glass))',
-    WebkitBackdropFilter: 'blur(var(--blur-glass))',
-    color: 'var(--color-primary)',
-    borderRadius: 'var(--radius-lg)',
+    backgroundColor: 'var(--color-s2)',
+    border: '1px solid var(--color-b2)',
+    borderLeft: '3px solid var(--color-green)',
+    color: 'var(--color-t1)',
+    borderRadius: 'var(--radius-md)',
     borderTopLeftRadius: 'var(--radius-sm)',
-    boxShadow: '-3px 0 12px rgba(0,200,150,0.15), var(--shadow-sm)',
+    boxShadow: '-4px 0 16px rgba(74,222,128,.08)',
     animation: 'bubbleEnterAI 350ms var(--ease-out) both',
   },
   bubbleUser: {
-    background: 'var(--gradient-user)',
+    background: 'var(--grad)',
     color: '#FFFFFF',
-    borderTop: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: 'var(--radius-lg)',
+    borderRadius: 'var(--radius-md)',
     borderTopRightRadius: 'var(--radius-sm)',
-    boxShadow: 'var(--shadow-sm)',
+    boxShadow: '0 4px 20px rgba(168,85,247,.25)',
     animation: 'bubbleEnterUser 350ms var(--ease-out) both',
   },
   cursor: {
     display: 'inline-block',
     width: 2,
     height: '1em',
-    backgroundColor: 'var(--color-ai)',
+    backgroundColor: 'var(--color-green)',
     marginLeft: 2,
     verticalAlign: 'text-bottom',
     animation: 'gradientCursor 1.2s ease-in-out infinite',
@@ -63,55 +57,37 @@ const styles = {
   timestamp: {
     position: 'absolute',
     bottom: -20,
-    fontFamily: 'var(--font-ui)',
-    fontSize: 'var(--text-xs)',
-    color: 'var(--color-muted)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '10px',
+    color: 'var(--color-t4)',
     whiteSpace: 'nowrap',
     opacity: 0,
-    transition: `opacity var(--duration-fast) var(--ease-out)`,
+    transition: 'opacity var(--duration-fast) var(--ease-out)',
     pointerEvents: 'none',
+    letterSpacing: '0.04em',
   },
-  timestampAI: {
-    left: 0,
-  },
-  timestampUser: {
-    right: 0,
-  },
+  timestampAI: { left: 0 },
+  timestampUser: { right: 0 },
 };
 
-/**
- * Format timestamp to a readable time string.
- * @param {number} ts — Unix timestamp in ms
- * @returns {string}
- */
 function formatTime(ts) {
-  const date = new Date(ts);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-/**
- * MessageBubble component.
- * @param {{ message: { id: string, role: 'user'|'ai', text: string, timestamp: number, isStreaming: boolean } }} props
- * @returns {React.ReactElement}
- */
 export default function MessageBubble({ message }) {
   const [isHovered, setIsHovered] = useState(false);
   const isUser = message.role === 'user';
 
   const hoverShadow = isUser
-    ? 'var(--shadow-md)'
-    : '-3px 0 12px rgba(0,200,150,0.15), var(--shadow-md)';
+    ? '0 4px 28px rgba(168,85,247,.4)'
+    : '-4px 0 20px rgba(74,222,128,.12)';
+
   const baseShadow = isUser
-    ? 'var(--shadow-sm)'
-    : '-3px 0 12px rgba(0,200,150,0.15), var(--shadow-sm)';
+    ? '0 4px 20px rgba(168,85,247,.25)'
+    : '-4px 0 16px rgba(74,222,128,.08)';
 
   return (
-    <div
-      style={{
-        ...styles.wrapper,
-        ...(isUser ? styles.wrapperUser : styles.wrapperAI),
-      }}
-    >
+    <div style={{ ...styles.wrapper, ...(isUser ? styles.wrapperUser : styles.wrapperAI) }}>
       <div
         style={{
           ...styles.bubble,
