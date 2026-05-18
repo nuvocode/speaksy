@@ -74,10 +74,36 @@
   /* ── Transitions ───────────────────────────────── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 500ms;
   --duration-slower: 800ms;
+
+  /* ── Glass Surfaces ────────────────────────────── */
+  --color-glass: rgba(255, 255, 255, 0.72);
+  --color-glass-border: rgba(255, 255, 255, 0.45);
+  --blur-glass: 16px;
+  --shadow-glass: 0 8px 32px rgba(26,26,46,0.08), 0 1px 0 rgba(255,255,255,0.6) inset;
+
+  /* ── Accent Soft Tint ──────────────────────────── */
+  --color-accent-soft: rgba(108, 99, 255, 0.12);
+
+  /* ── Background Gradients ──────────────────────── */
+  --gradient-bg-light: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.06) 0%, transparent 60%),
+                       radial-gradient(ellipse at 80% 20%, rgba(0,200,150,0.05) 0%, transparent 50%),
+                       #F8F7FF;
+  --gradient-bg-dark:  radial-gradient(ellipse at 20% 50%, rgba(124,115,255,0.08) 0%, transparent 60%),
+                       radial-gradient(ellipse at 80% 20%, rgba(0,223,168,0.06) 0%, transparent 50%),
+                       #0F0F14;
+
+  /* ── Extended Typography ───────────────────────── */
+  --text-4xl: 2.5rem;             /* 40px */
+  --letter-spacing-tight: -0.02em;
+
+  /* ── Extended Spacing ──────────────────────────── */
+  --space-14: 56px;
+  --space-20: 80px;
 }
 
 /* ── Dark Mode ───────────────────────────────────── */
@@ -103,4 +129,13 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
   --shadow-md: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+
+  /* ── Dark Glass & Gradient Overrides ───────────── */
+  --color-glass: rgba(26, 26, 46, 0.72);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-glass: 0 8px 32px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset;
+  --color-accent-soft: rgba(124, 115, 255, 0.15);
+  --gradient-bg-dark:  radial-gradient(ellipse at 20% 50%, rgba(124,115,255,0.08) 0%, transparent 60%),
+                       radial-gradient(ellipse at 80% 20%, rgba(0,223,168,0.06) 0%, transparent 50%),
+                       #0F0F14;
 }

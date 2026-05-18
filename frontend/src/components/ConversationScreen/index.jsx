@@ -37,9 +37,15 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 'var(--space-4) var(--space-6)',
-    borderBottom: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-surface)',
+    backgroundColor: 'var(--color-glass)',
+    backdropFilter: 'blur(var(--blur-glass))',
+    WebkitBackdropFilter: 'blur(var(--blur-glass))',
+    borderBottom: '1px solid var(--color-glass-border)',
+    boxShadow: 'var(--shadow-glass)',
     flexShrink: 0,
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
   },
   headerLeft: {
     display: 'flex',
@@ -64,7 +70,7 @@ const styles = {
     padding: 0,
     background: 'none',
     border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-sm)',
+    borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
     color: 'var(--color-muted)',
     transition: `all var(--duration-fast) var(--ease-out)`,
@@ -221,7 +227,7 @@ export default function ConversationScreen() {
   return (
     <div style={styles.container}>
       {/* ── Header ─────────────────────────────── */}
-      <header style={{ ...styles.header, position: 'relative' }}>
+      <header style={styles.header}>
         <div style={styles.headerLeft}>
           <button
             style={styles.backButton}
@@ -251,6 +257,16 @@ export default function ConversationScreen() {
               onClick={clearConversation}
               aria-label="Clear conversation"
               title="Clear conversation"
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
+              onMouseDown={(e) => {
+                e.currentTarget.classList.add('animate-spring-press');
+              }}
+              onMouseUp={(e) => {
+                const btn = e.currentTarget;
+                setTimeout(() => btn.classList.remove('animate-spring-press'), 250);
+              }}
+              onAnimationEnd={(e) => { e.currentTarget.classList.remove('animate-spring-press'); }}
             >
               <Trash2 size={18} />
             </button>
@@ -261,6 +277,16 @@ export default function ConversationScreen() {
             onClick={toggleSettings}
             aria-label="Open settings"
             title="Settings"
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
+            onMouseDown={(e) => {
+              e.currentTarget.classList.add('animate-spring-press');
+            }}
+            onMouseUp={(e) => {
+              const btn = e.currentTarget;
+              setTimeout(() => btn.classList.remove('animate-spring-press'), 250);
+            }}
+            onAnimationEnd={(e) => { e.currentTarget.classList.remove('animate-spring-press'); }}
           >
             <SettingsIcon size={18} />
           </button>

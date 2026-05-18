@@ -8,7 +8,7 @@
  * Reads speech state from Zustand and conversation actions from props.
  */
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import useSTT from '../../hooks/useSTT.js';
@@ -17,7 +17,7 @@ import useSTT from '../../hooks/useSTT.js';
 const BUTTON_SIZE = 72;
 
 /** Pulse ring count */
-const RING_COUNT = 2;
+const RING_COUNT = 3;
 
 const styles = {
   container: {
@@ -48,21 +48,21 @@ const styles = {
     backgroundColor: 'var(--color-surface)',
     border: '2px solid var(--color-border)',
     color: 'var(--color-primary)',
-    boxShadow: 'var(--shadow-md)',
+    boxShadow: 'var(--shadow-glass)',
   },
   buttonListening: {
-    backgroundColor: 'var(--color-user)',
+    background: 'var(--gradient-user)',
     border: '2px solid var(--color-user)',
     color: '#FFFFFF',
-    boxShadow: 'var(--shadow-lg)',
+    boxShadow: '0 0 24px rgba(255, 107, 107, 0.4), var(--shadow-glass)',
   },
   buttonDisabled: {
     backgroundColor: 'var(--color-surface)',
     border: '2px solid var(--color-border)',
     color: 'var(--color-muted)',
-    opacity: 0.5,
+    opacity: 0.4,
     cursor: 'not-allowed',
-    boxShadow: 'var(--shadow-sm)',
+    filter: 'grayscale(60%)',
   },
   ring: {
     position: 'absolute',
@@ -96,6 +96,7 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
   const wsStatus = useAppStore((s) => s.wsStatus);
 
   const transcriptRef = useRef('');
+  const [animClass, setAnimClass] = useState('');
 
   const { isListening, startListening, stopListening, isSupported } = useSTT({
     onTranscript: (text, isFinal) => {
@@ -106,6 +107,16 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
       }
     },
   });
+
+  useEffect(() => {
+    if (isListening) {
+      setAnimClass('animate-mic-spring-in');
+    } else {
+      setAnimClass('animate-mic-spring-out');
+    }
+    const timer = setTimeout(() => setAnimClass(''), isListening ? 350 : 250);
+    return () => clearTimeout(timer);
+  }, [isListening]);
 
   const isDisabled = isAISpeaking || isAIBusy || wsStatus !== 'connected';
 
@@ -165,6 +176,7 @@ export default function MicButton({ sendMessage, isAIBusy = false, busyLabel = '
           ))}
 
         <button
+          className={animClass}
           style={{ ...styles.button, ...buttonStyle }}
           onClick={handleClick}
           disabled={isDisabled && !isListening}

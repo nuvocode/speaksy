@@ -33,21 +33,23 @@ const styles = {
     wordBreak: 'break-word',
   },
   bubbleAI: {
-    backgroundColor: 'var(--color-surface)',
+    backgroundColor: 'var(--color-glass)',
+    backdropFilter: 'blur(var(--blur-glass))',
+    WebkitBackdropFilter: 'blur(var(--blur-glass))',
     color: 'var(--color-primary)',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: 'var(--radius-lg)',
     borderTopLeftRadius: 'var(--radius-sm)',
-    boxShadow: 'var(--shadow-sm)',
-    borderLeft: '3px solid var(--color-ai)',
-    animation: 'slideInLeft var(--duration-slow) var(--ease-out) both',
+    boxShadow: '-3px 0 12px rgba(0,200,150,0.15), var(--shadow-sm)',
+    animation: 'bubbleEnterAI 350ms var(--ease-out) both',
   },
   bubbleUser: {
     background: 'var(--gradient-user)',
     color: '#FFFFFF',
-    borderRadius: 'var(--radius-md)',
+    borderTop: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: 'var(--radius-lg)',
     borderTopRightRadius: 'var(--radius-sm)',
     boxShadow: 'var(--shadow-sm)',
-    animation: 'slideInRight var(--duration-slow) var(--ease-out) both',
+    animation: 'bubbleEnterUser 350ms var(--ease-out) both',
   },
   cursor: {
     display: 'inline-block',
@@ -56,7 +58,7 @@ const styles = {
     backgroundColor: 'var(--color-ai)',
     marginLeft: 2,
     verticalAlign: 'text-bottom',
-    animation: 'blinkCursor 500ms step-end infinite',
+    animation: 'gradientCursor 1.2s ease-in-out infinite',
   },
   timestamp: {
     position: 'absolute',
@@ -93,8 +95,15 @@ function formatTime(ts) {
  * @returns {React.ReactElement}
  */
 export default function MessageBubble({ message }) {
-  const [hovered, setHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const isUser = message.role === 'user';
+
+  const hoverShadow = isUser
+    ? 'var(--shadow-md)'
+    : '-3px 0 12px rgba(0,200,150,0.15), var(--shadow-md)';
+  const baseShadow = isUser
+    ? 'var(--shadow-sm)'
+    : '-3px 0 12px rgba(0,200,150,0.15), var(--shadow-sm)';
 
   return (
     <div
@@ -107,9 +116,10 @@ export default function MessageBubble({ message }) {
         style={{
           ...styles.bubble,
           ...(isUser ? styles.bubbleUser : styles.bubbleAI),
+          boxShadow: isHovered ? hoverShadow : baseShadow,
         }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         role="article"
         aria-label={`${isUser ? 'Your' : 'AI'} message`}
       >
@@ -120,7 +130,7 @@ export default function MessageBubble({ message }) {
           style={{
             ...styles.timestamp,
             ...(isUser ? styles.timestampUser : styles.timestampAI),
-            opacity: hovered ? 1 : 0,
+            opacity: isHovered ? 1 : 0,
           }}
           aria-hidden="true"
         >

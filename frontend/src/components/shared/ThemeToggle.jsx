@@ -6,7 +6,7 @@
  * Uses data-theme attribute on <html> for CSS-driven theming.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 
@@ -38,7 +38,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'transform 300ms var(--ease-out)',
+    transition: 'transform 300ms var(--ease-spring)',
     boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
   },
   icon: {
@@ -54,6 +54,13 @@ export default function ThemeToggle() {
   const theme = useAppStore((s) => s.theme);
   const toggleTheme = useAppStore((s) => s.toggleTheme);
   const isDark = theme === 'dark';
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleToggle = () => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 300);
+    toggleTheme();
+  };
 
   const toggleBg = isDark
     ? 'linear-gradient(135deg, #2D2D5E, #1A1A3E)'
@@ -69,7 +76,7 @@ export default function ThemeToggle() {
         ...styles.toggle,
         background: toggleBg,
       }}
-      onClick={toggleTheme}
+      onClick={handleToggle}
       role="switch"
       aria-checked={isDark}
       aria-label="Toggle dark mode"
@@ -85,6 +92,7 @@ export default function ThemeToggle() {
         style={{
           ...styles.knob,
           transform: knobTranslate,
+          ...(isAnimating && { animation: 'knobScale 300ms var(--ease-spring) both' }),
         }}
       >
         {isDark ? (

@@ -17,7 +17,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 
 /** Number of bars in each mode */
 const IDLE_BAR_COUNT = 5;
-const ACTIVE_BAR_COUNT = 9;
+const ACTIVE_BAR_COUNT = 13; // Task 7.1: increased from 9 to 13
 
 /** Bar visual settings */
 const BAR_WIDTH = 4;
@@ -98,6 +98,20 @@ function lerp(current, target, speed) {
 }
 
 /**
+ * Task 7.2: Lighten a hex color by adding a fixed amount to each channel.
+ * @param {string} hex — hex color string (e.g. '#FF6B6B')
+ * @param {number} amount — 0 to 1, fraction of 255 to add
+ * @returns {string} rgb(...) color string
+ */
+function lightenColor(hex, amount) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, (num >> 16) + Math.round(255 * amount));
+  const g = Math.min(255, ((num >> 8) & 0xff) + Math.round(255 * amount));
+  const b = Math.min(255, (num & 0xff) + Math.round(255 * amount));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
  * WaveAnimation component.
  * @param {{ isActive?: boolean, audioLevel?: number, mode?: 'user'|'ai'|'idle' }} props
  * @returns {React.ReactElement}
@@ -108,6 +122,8 @@ export default function WaveAnimation({ isActive = false, audioLevel = 0, mode =
   const phaseRef = useRef(0);
   const currentColorRef = useRef({ start: MODE_COLORS.idle.start, end: MODE_COLORS.idle.end });
   const smoothLevelRef = useRef(0);
+  // Task 7.5: timestamp guard for reduced-motion throttling
+  const lastDrawTimeRef = useRef(0);
 
   /**
    * Main draw loop — called via requestAnimationFrame.
@@ -118,6 +134,15 @@ export default function WaveAnimation({ isActive = false, audioLevel = 0, mode =
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Task 7.5: prefers-reduced-motion check
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const now = performance.now();
+    if (prefersReducedMotion && now - lastDrawTimeRef.current < 1000) {
+      animFrameRef.current = requestAnimationFrame(draw);
+      return;
+    }
+    lastDrawTimeRef.current = now;
 
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = canvas.clientWidth;
@@ -166,17 +191,42 @@ export default function WaveAnimation({ isActive = false, audioLevel = 0, mode =
       const offset = (i / barCount) * Math.PI * 2;
       const sinVal = Math.sin(phaseRef.current + offset);
       const amplitude = BAR_MIN_HEIGHT_RATIO + (1 - BAR_MIN_HEIGHT_RATIO) * level;
-      const barHeight = maxBarHeight * amplitude * (0.4 + 0.6 * Math.abs(sinVal));
 
-      /* Gradient for individual bar */
+      // Task 7.4: center-peaked sine idle profile
+      let barHeight;
+      if (effectiveMode === 'idle') {
+        const centerOffset = Math.abs(i - (barCount - 1) / 2) / ((barCount - 1) / 2);
+        const idleProfile = 0.3 + 0.4 * (1 - centerOffset); // 0.3–0.7 range
+        barHeight = maxBarHeight * amplitude * idleProfile * (0.4 + 0.6 * Math.abs(sinVal));
+      } else {
+        barHeight = maxBarHeight * amplitude * (0.4 + 0.6 * Math.abs(sinVal));
+      }
+
+      /* Color for this bar position */
       const t = i / (barCount - 1 || 1);
       const barColor = lerpColor(currentColorRef.current.start, currentColorRef.current.end, t);
 
-      ctx.fillStyle = barColor;
+      const y = centerY - barHeight / 2;
+
+      // Task 7.3: glow effect when active
+      if (isActive) {
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = barColor;
+      }
+
+      // Task 7.2: vertical gradient fill per bar (guard against zero-height bars)
+      if (barHeight > 0) {
+        const grad = ctx.createLinearGradient(x, y, x, y + barHeight);
+        grad.addColorStop(0, lightenColor(barColor, 0.3)); // lighter top
+        grad.addColorStop(1, barColor);                    // mode color bottom
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = barColor;
+      }
+
       ctx.beginPath();
 
       /* Rounded rectangle */
-      const y = centerY - barHeight / 2;
       const r = Math.min(BAR_CORNER_RADIUS, BAR_WIDTH / 2, barHeight / 2);
 
       ctx.moveTo(x + r, y);
@@ -190,6 +240,10 @@ export default function WaveAnimation({ isActive = false, audioLevel = 0, mode =
       ctx.quadraticCurveTo(x, y, x + r, y);
 
       ctx.fill();
+
+      // Task 7.3: reset shadow after each bar
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
     }
 
     animFrameRef.current = requestAnimationFrame(draw);

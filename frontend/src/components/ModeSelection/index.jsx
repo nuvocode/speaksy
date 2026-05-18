@@ -7,7 +7,7 @@
  * Each mode with hasConfig: true requires a matching configComponent.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import Logo from '../shared/Logo.jsx';
@@ -71,10 +71,15 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 'var(--space-4) var(--space-6)',
-    borderBottom: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-surface)',
+    backgroundColor: 'var(--color-glass)',
+    backdropFilter: 'blur(var(--blur-glass))',
+    WebkitBackdropFilter: 'blur(var(--blur-glass))',
+    borderBottom: '1px solid var(--color-glass-border)',
+    boxShadow: 'var(--shadow-glass)',
     flexShrink: 0,
-    position: 'relative',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
   },
   headerLeft: {
     display: 'flex',
@@ -99,7 +104,7 @@ const styles = {
     padding: 0,
     background: 'none',
     border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-sm)',
+    borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
     color: 'var(--color-muted)',
     transition: 'all var(--duration-fast) var(--ease-out)',
@@ -112,7 +117,10 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: 'var(--space-10) var(--space-6)',
+    paddingTop: 'var(--space-14)',
+    paddingBottom: 'var(--space-10)',
+    paddingLeft: 'var(--space-6)',
+    paddingRight: 'var(--space-6)',
     gap: 'var(--space-8)',
   },
   greeting: {
@@ -123,9 +131,13 @@ const styles = {
   },
   greetingTitle: {
     fontFamily: 'var(--font-display)',
-    fontSize: 'var(--text-3xl)',
+    fontSize: 'var(--text-4xl)',
     fontWeight: 'var(--weight-bold)',
-    color: 'var(--color-primary)',
+    background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    letterSpacing: 'var(--letter-spacing-tight)',
     lineHeight: 'var(--leading-tight)',
   },
   greetingSubtitle: {
@@ -165,7 +177,7 @@ const styles = {
     padding: 'var(--space-4) var(--space-8)',
     borderRadius: 'var(--radius-full)',
     border: 'none',
-    backgroundColor: 'var(--color-accent)',
+    background: 'var(--gradient-user)',
     color: '#FFFFFF',
     fontFamily: 'var(--font-ui)',
     fontSize: 'var(--text-base)',
@@ -187,6 +199,8 @@ export default function ModeSelection() {
 
   const [selectedModeId, setSelectedModeId] = useState(null);
   const [modeConfigData, setModeConfigData] = useState(null);
+  const [startBtnAnimClass, setStartBtnAnimClass] = useState('');
+  const prevCanStart = useRef(false);
 
   const selectedMode = MODES.find((m) => m.id === selectedModeId);
 
@@ -196,6 +210,14 @@ export default function ModeSelection() {
     if (!selectedMode.hasConfig) return true;
     return modeConfigData !== null;
   })();
+
+  useEffect(() => {
+    if (canStart && !prevCanStart.current) {
+      setStartBtnAnimClass('animate-start-button-enable');
+      setTimeout(() => setStartBtnAnimClass(''), 400);
+    }
+    prevCanStart.current = canStart;
+  }, [canStart]);
 
   const handleModeSelect = useCallback((modeId) => {
     setSelectedModeId(modeId);
@@ -253,6 +275,16 @@ export default function ModeSelection() {
             onClick={toggleSettings}
             aria-label="Open settings"
             title="Settings"
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
+            onMouseDown={(e) => {
+              e.currentTarget.classList.add('animate-spring-press');
+            }}
+            onMouseUp={(e) => {
+              const btn = e.currentTarget;
+              setTimeout(() => btn.classList.remove('animate-spring-press'), 250);
+            }}
+            onAnimationEnd={(e) => { e.currentTarget.classList.remove('animate-spring-press'); }}
           >
             <SettingsIcon size={18} />
           </button>
@@ -309,7 +341,9 @@ export default function ModeSelection() {
             }}
             onClick={handleStart}
             disabled={!canStart}
-            className="animate-fade-in-up"
+            className={`animate-fade-in-up${startBtnAnimClass ? ` ${startBtnAnimClass}` : ''}`}
+            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(255,107,107,0.4)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
           >
             Start Conversation
           </button>

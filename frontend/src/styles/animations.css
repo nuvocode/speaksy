@@ -152,11 +152,11 @@
 
 /* ── View Transition Utility Classes ─────────────── */
 .view-entering {
-  animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+  animation: viewEnterScale 350ms var(--ease-out) both;
 }
 
 .view-leaving {
-  animation: fadeOutUp var(--duration-slow) var(--ease-out) both;
+  animation: viewExitScale 250ms var(--ease-out) both;
 }
 
 /* ── Staggered Fade In Up (for cards) ────────────── */
@@ -164,3 +164,147 @@
 .stagger-1 { animation-delay: 80ms; }
 .stagger-2 { animation-delay: 160ms; }
 .stagger-3 { animation-delay: 240ms; }
+
+/* ── Ambient Shift — slow gradient drift (reference; defined in globals.css) ── */
+@keyframes ambientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Spring Press — button press feedback ────────── */
+@keyframes springPress {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+
+.animate-spring-press {
+  animation: springPress 250ms var(--ease-spring) both;
+}
+
+/* ── Icon Pulse — selected mode icon ─────────────── */
+@keyframes iconPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.animate-icon-pulse {
+  animation: iconPulse 300ms var(--ease-spring) both;
+}
+
+/* ── Check Scale In — ModeCard check indicator ───── */
+@keyframes checkScaleIn {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+.animate-check-scale-in {
+  animation: checkScaleIn 200ms var(--ease-spring) both;
+}
+
+/* ── Mic Spring In/Out — mic button transitions ───── */
+@keyframes micSpringIn {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.92); }
+  70%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes micSpringOut {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.animate-mic-spring-in {
+  animation: micSpringIn 350ms var(--ease-spring) both;
+}
+
+.animate-mic-spring-out {
+  animation: micSpringOut 250ms var(--ease-out) both;
+}
+
+/* ── Start Button Enable — scale in on enable ────── */
+@keyframes startButtonEnable {
+  0%   { transform: scale(0.9); }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.animate-start-button-enable {
+  animation: startButtonEnable 400ms var(--ease-spring) both;
+}
+
+/* ── View Scale Transitions — enter/exit ─────────── */
+@keyframes viewExitScale {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.97); }
+}
+
+@keyframes viewEnterScale {
+  from { opacity: 0; transform: scale(1.03); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Gradient Cursor — soft streaming cursor ─────── */
+@keyframes gradientCursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.animate-gradient-cursor {
+  animation: gradientCursor 1.2s ease-in-out infinite;
+}
+
+/* ── Logo Breathe — badge idle animation ─────────── */
+@keyframes logoBreathe {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.02); }
+}
+
+.animate-logo-breathe {
+  animation: logoBreathe 4s var(--ease-in-out) infinite;
+}
+
+/* ── Knob Scale — ThemeToggle knob ───────────────── */
+@keyframes knobScale {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.animate-knob-scale {
+  animation: knobScale 300ms var(--ease-spring) both;
+}
+
+/* ── Settings Panel Transitions ──────────────────── */
+@keyframes settingsEnter {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes settingsLeave {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0; }
+}
+
+.settings-entering {
+  animation: settingsEnter 350ms var(--ease-out) both;
+}
+
+.settings-leaving {
+  animation: settingsLeave 250ms var(--ease-out) both;
+}
+
+/* ── Message Bubble Entry Animations ─────────────── */
+@keyframes bubbleEnterAI {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bubbleEnterUser {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}

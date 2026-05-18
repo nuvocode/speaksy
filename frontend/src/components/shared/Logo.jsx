@@ -33,6 +33,7 @@ const styles = {
     borderRadius: 'var(--radius-sm)',
     letterSpacing: '0.05em',
     lineHeight: 1.4,
+    animation: 'logoBreathe 4s var(--ease-in-out) infinite',
   },
 };
 

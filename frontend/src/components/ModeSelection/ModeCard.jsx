@@ -5,7 +5,7 @@
  * @param {{ mode: Object, isSelected: boolean, onSelect: function }} props
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle, BookOpen, FileText, Check } from 'lucide-react';
 
 /** Map icon name strings to lucide-react components */
@@ -30,7 +30,10 @@ const styles = {
     justifyContent: 'center',
     gap: 'var(--space-3)',
     border: '2px solid var(--color-border)',
-    backgroundColor: 'var(--color-surface)',
+    // 5.1: glass surface
+    backgroundColor: 'var(--color-glass)',
+    backdropFilter: 'blur(var(--blur-glass))',
+    WebkitBackdropFilter: 'blur(var(--blur-glass))',
     boxShadow: 'var(--shadow-sm)',
     transition: 'all 250ms var(--ease-out)',
     outline: 'none',
@@ -75,20 +78,60 @@ const styles = {
  */
 export default function ModeCard({ mode, isSelected, onSelect }) {
   const [isHovered, setIsHovered] = useState(false);
+  // 5.5: icon pulse animation class
+  const [iconAnimClass, setIconAnimClass] = useState('');
 
   const IconComponent = ICON_MAP[mode.icon] || MessageCircle;
   const modeColor = `var(${mode.color})`;
 
+  // 5.5: trigger iconPulse when card becomes selected
+  useEffect(() => {
+    if (isSelected) {
+      setIconAnimClass('animate-icon-pulse');
+      const timer = setTimeout(() => setIconAnimClass(''), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isSelected]);
+
+  // 5.3: hover → translateY(-6px) + shadow-glass
+  // 5.4: selected → colored border + inset glow
   const cardStyle = {
     ...styles.card,
     borderColor: isSelected ? modeColor : 'var(--color-border)',
-    boxShadow: isSelected || isHovered ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+    // 5.4: selected border and inset glow
+    border: isSelected
+      ? `2px solid ${modeColor}`
+      : '2px solid var(--color-border)',
+    boxShadow: isSelected
+      ? `inset 0 0 20px color-mix(in srgb, ${modeColor} 10%, transparent), var(--shadow-glass)`
+      : isHovered
+        ? 'var(--shadow-glass)'
+        : 'var(--shadow-sm)',
+    // 5.3: hover lift increased to -6px
     transform: isSelected
       ? 'translateY(-4px)'
       : isHovered
-        ? 'translateY(-2px)'
+        ? 'translateY(-6px)'
         : 'translateY(0)',
     animation: isSelected ? 'cardSelectBounce 200ms var(--ease-out)' : undefined,
+  };
+
+  // 5.2: icon background circle — 56×56px, mode color at 15% opacity
+  const iconBgStyle = {
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    background: `color-mix(in srgb, ${modeColor} 15%, transparent)`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  // 5.6: check indicator animation
+  const checkStyle = {
+    ...styles.check,
+    backgroundColor: modeColor,
+    animation: 'checkScaleIn 200ms var(--ease-spring) both',
   };
 
   return (
@@ -108,14 +151,18 @@ export default function ModeCard({ mode, isSelected, onSelect }) {
       aria-label={`${mode.label}: ${mode.description}`}
       tabIndex={0}
     >
-      {/* Check mark for selected */}
+      {/* 5.6: Check mark for selected with checkScaleIn animation */}
       {isSelected && (
-        <span style={{ ...styles.check, backgroundColor: modeColor }}>
+        <span style={checkStyle}>
           <Check size={14} color="#FFFFFF" />
         </span>
       )}
 
-      <IconComponent size={32} color={modeColor} style={styles.icon} />
+      {/* 5.2: Icon wrapped in background circle */}
+      <div style={iconBgStyle} className={iconAnimClass}>
+        <IconComponent size={32} color={modeColor} style={styles.icon} />
+      </div>
+
       <span style={styles.label}>{mode.label}</span>
       <span style={styles.description}>{mode.description}</span>
     </button>

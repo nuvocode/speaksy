@@ -4,7 +4,7 @@
  * Contains the ProviderForm for configuring AI, STT, and voice settings.
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { X } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import ProviderForm from './ProviderForm.jsx';
@@ -18,9 +18,9 @@ const styles = {
     position: 'fixed',
     inset: 0,
     zIndex: 100,
-    backgroundColor: 'rgba(26, 26, 46, 0.3)',
-    backdropFilter: 'blur(4px)',
-    WebkitBackdropFilter: 'blur(4px)',
+    backgroundColor: 'rgba(26, 26, 46, 0.2)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     transition: `opacity var(--duration-normal) var(--ease-out)`,
   },
   panel: {
@@ -31,12 +31,13 @@ const styles = {
     width: PANEL_WIDTH,
     maxWidth: '100vw',
     zIndex: 101,
-    backgroundColor: 'var(--color-bg)',
+    backgroundColor: 'var(--color-glass)',
+    backdropFilter: 'blur(var(--blur-glass))',
+    WebkitBackdropFilter: 'blur(var(--blur-glass))',
     borderLeft: '1px solid var(--color-border)',
-    boxShadow: 'var(--shadow-lg)',
+    boxShadow: '-8px 0 32px rgba(26,26,46,0.12), var(--shadow-glass)',
     display: 'flex',
     flexDirection: 'column',
-    transition: `transform var(--duration-slow) var(--ease-out)`,
   },
   header: {
     display: 'flex',
@@ -60,7 +61,7 @@ const styles = {
     padding: 0,
     background: 'none',
     border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-sm)',
+    borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
     color: 'var(--color-muted)',
     transition: `all var(--duration-fast) var(--ease-out)`,
@@ -91,8 +92,42 @@ export default function Settings() {
   const toggleSettings = useAppStore((s) => s.toggleSettings);
   const settings = useAppStore((s) => s.settings);
 
+  const [isVisible, setIsVisible] = useState(false);
+  const [animClass, setAnimClass] = useState('');
+  const [closeHover, setCloseHover] = useState(false);
+
   const panelRef = useRef(null);
   const prevSettingsRef = useRef(settings);
+  const unmountTimerRef = useRef(null);
+
+  /**
+   * Handle open/close animation lifecycle.
+   */
+  useEffect(() => {
+    if (settingsOpen) {
+      // Clear any pending unmount
+      if (unmountTimerRef.current) {
+        clearTimeout(unmountTimerRef.current);
+        unmountTimerRef.current = null;
+      }
+      setIsVisible(true);
+      // Defer to next frame so the DOM is mounted before animation starts
+      requestAnimationFrame(() => setAnimClass('settings-entering'));
+    } else {
+      setAnimClass('settings-leaving');
+      unmountTimerRef.current = setTimeout(() => {
+        setIsVisible(false);
+        setAnimClass('');
+        unmountTimerRef.current = null;
+      }, 250);
+    }
+
+    return () => {
+      if (unmountTimerRef.current) {
+        clearTimeout(unmountTimerRef.current);
+      }
+    };
+  }, [settingsOpen]);
 
   /**
    * Close panel on Escape key.
@@ -139,7 +174,7 @@ export default function Settings() {
     [toggleSettings]
   );
 
-  if (!settingsOpen) return null;
+  if (!isVisible) return null;
 
   return (
     <>
@@ -157,10 +192,8 @@ export default function Settings() {
       {/* Panel */}
       <div
         ref={panelRef}
-        style={{
-          ...styles.panel,
-          transform: settingsOpen ? 'translateX(0)' : `translateX(${PANEL_WIDTH}px)`,
-        }}
+        className={animClass}
+        style={styles.panel}
         role="dialog"
         aria-modal="true"
         aria-label="Settings"
@@ -169,8 +202,13 @@ export default function Settings() {
         <div style={styles.header}>
           <h2 style={styles.title}>Settings</h2>
           <button
-            style={styles.closeButton}
+            style={{
+              ...styles.closeButton,
+              backgroundColor: closeHover ? 'var(--color-accent-soft)' : undefined,
+            }}
             onClick={toggleSettings}
+            onMouseEnter={() => setCloseHover(true)}
+            onMouseLeave={() => setCloseHover(false)}
             aria-label="Close settings"
           >
             <X size={18} />
