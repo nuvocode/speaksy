@@ -123,9 +123,10 @@ function applyTheme(theme) {
  * @property {Object} settings
  * @property {boolean} settingsOpen
  * @property {string} sessionId
- * @property {'selection'|'conversation'} currentView
+ * @property {'selection'|'conversation'|'setup'} currentView
  * @property {ModeConfig|null} activeMode
  * @property {'light'|'dark'} theme
+ * @property {boolean|null} setupRequired — null = checking, true = show wizard, false = ready
  */
 
 const useAppStore = create((set, get) => ({
@@ -280,6 +281,10 @@ const useAppStore = create((set, get) => ({
 
   /* ── Session ──────────────────────────────────── */
   sessionId: generateId(),
+
+  /* ── Setup ────────────────────────────────── */
+  setupRequired: null,
+  setSetupRequired: (val) => set({ setupRequired: val }),
 }));
 
 export default useAppStore;

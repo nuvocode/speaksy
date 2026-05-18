@@ -13,16 +13,29 @@ import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 
 import config, { validateConfig } from './config.js';
-import { initWebSocket } from './websocket/handler.js';
+import { initWebSocket, reinitProviders } from './websocket/handler.js';
 import chatRouter from './routes/chat.js';
 import ttsRouter from './routes/tts.js';
 import sttRouter from './routes/stt.js';
+import setupRouter from './routes/setup.js';
+import { ensureDataDir, configFileExists, readConfigFile, applyConfigFile } from './services/setupService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '../public');
 
 /* ── Validate configuration ─────────────────────────── */
 validateConfig();
+
+/* ── Load persisted config (setup wizard) ────────────── */
+ensureDataDir();
+if (configFileExists()) {
+  const saved = readConfigFile();
+  if (saved) {
+    applyConfigFile(saved);
+    reinitProviders();
+    console.log('[Speaksy] Config loaded from /app/data/config.json');
+  }
+}
 
 /* ── Express app ─────────────────────────────────────── */
 const app = express();
@@ -35,6 +48,7 @@ app.get('/health', (_req, res) => {
 });
 
 /* REST routes */
+app.use('/api/setup', setupRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/tts', ttsRouter);
 app.use('/api/stt', sttRouter);

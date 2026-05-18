@@ -13,6 +13,7 @@ COPY backend/package.json ./
 RUN npm install --omit=dev --prefer-offline
 COPY backend/ ./
 COPY --from=frontend-builder /frontend/dist ./public
+RUN mkdir -p /app/data
 
 # Default environment values — overridden by docker run -e or env_file
 ENV PORT=3001 \

@@ -6,11 +6,14 @@ services:
     image: nuvocode/speaksy
     ports:
       - "3001:3001"
-    env_file: .env
+    # env_file removed — setup wizard writes config to /app/data/config.json
     environment:
+      - PORT=3001
       - KOKORO_URL=http://kokoro:8880
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
       - LMSTUDIO_BASE_URL=http://host.docker.internal:1234
+    volumes:
+      - ./data:/app/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
