@@ -25,6 +25,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-3)',
+    height: '26vh'
   },
   sectionLabel: {
     fontFamily: 'var(--font-mono)',

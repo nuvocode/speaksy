@@ -40,7 +40,7 @@ const styles = {
 
 export default function Logo() {
   return (
-    <div style={styles.container} aria-label="Lingua AI">
+    <div style={styles.container} aria-label="Speaksy">
       <svg width="22" height="20" viewBox="0 0 26 24" fill="none" aria-hidden="true">
         <defs>
           <linearGradient id="lg-logo" x1="0" y1="24" x2="26" y2="0" gradientUnits="userSpaceOnUse">
@@ -53,8 +53,8 @@ export default function Logo() {
         <rect x="18" y="0" width="8" height="10" rx="2" fill="url(#lg-logo)" opacity=".5" />
       </svg>
       <div style={styles.wordmark}>
-        <span style={styles.textGrad}>Lingua</span>
-        <span style={styles.textPlain}>AI</span>
+        <span style={styles.textGrad}>Speak</span>
+        <span style={styles.textPlain}>sy</span>
       </div>
     </div>
   );

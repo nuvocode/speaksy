@@ -8,7 +8,6 @@ import { Settings as SettingsIcon } from 'lucide-react';
 import useAppStore from '../../store/appStore.js';
 import Logo from '../shared/Logo.jsx';
 import StatusIndicator from '../shared/StatusIndicator.jsx';
-import ThemeToggle from '../shared/ThemeToggle.jsx';
 import ModeCard from './ModeCard.jsx';
 import TopicConfig from './TopicConfig.jsx';
 import ScriptConfig from './ScriptConfig.jsx';
@@ -49,7 +48,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100dvh',
-    backgroundColor: 'var(--color-bg)',
     overflow: 'hidden',
   },
 
@@ -81,6 +79,20 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-2)',
+  },
+  footer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    padding: '0 var(--space-8)',
+    height: 54,
+    backgroundColor: 'rgba(9,9,11,.85)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    borderTop: '1px solid var(--color-b1)',
+    flexShrink: 0,
+    zIndex: 10,
   },
   iconButton: {
     display: 'flex',
@@ -181,7 +193,6 @@ const styles = {
     backgroundColor: 'var(--color-s1)',
     borderRadius: 'var(--radius-xl)',
     border: '1px solid var(--color-b2)',
-    boxShadow: 'var(--shadow-md)',
   },
 
   startButton: {
@@ -262,7 +273,6 @@ export default function ModeSelection() {
           <StatusIndicator status={wsStatus} />
         </div>
         <div style={styles.headerRight}>
-          <ThemeToggle />
           <button
             style={styles.iconButton}
             onClick={toggleSettings}
@@ -357,6 +367,10 @@ export default function ModeSelection() {
           </button>
         )}
       </div>
+
+      <footer style={styles.footer}>
+        Powered by <a target='_blank' href='https://nuvocode.com'>Nuvo Code</a>
+      </footer>
     </div>
   );
 }

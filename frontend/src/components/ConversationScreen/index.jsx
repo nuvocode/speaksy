@@ -20,7 +20,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100dvh',
-    backgroundColor: 'var(--color-bg)',
     overflow: 'hidden',
   },
 
@@ -108,6 +107,9 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-1)',
+    width: '100%',
+    maxWidth: 1366,
+    margin: '0 auto'
   },
   messagesPlaceholder: {
     flex: 1,
@@ -139,7 +141,7 @@ const styles = {
     alignItems: 'center',
     gap: 'var(--space-4)',
     borderTop: '1px solid var(--color-b1)',
-    backgroundColor: 'rgba(9,9,11,.6)',
+    backgroundColor: 'rgba(9,9,11,1)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
   },
@@ -257,7 +259,7 @@ export default function ConversationScreen() {
               <Trash2 size={14} />
             </button>
           )}
-          <ThemeToggle />
+
           <button
             style={styles.iconButton}
             onClick={toggleSettings}
