@@ -214,4 +214,15 @@ export function initWebSocket(wss) {
   });
 }
 
-export default { initWebSocket, getProvider };
+/** Rebuild all provider instances after a config change (e.g. setup wizard save). */
+export function reinitProviders() {
+  providers.gemini    = new GeminiProvider();
+  providers.openai    = new OpenAIProvider();
+  providers.anthropic = new AnthropicProvider();
+  providers.groq      = new GroqProvider();
+  providers.ollama    = new OllamaProvider();
+  providers.lmstudio  = new LMStudioProvider();
+  console.log('[ws] Providers reinitialized.');
+}
+
+export default { initWebSocket, getProvider, reinitProviders };

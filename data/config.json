@@ -1,0 +1,17 @@
+{
+  "_version": 1,
+  "_createdAt": "2026-05-18T17:26:37.334Z",
+  "AI_PROVIDER": "ollama",
+  "OLLAMA_BASE_URL": "http://host.docker.internal:11434",
+  "OLLAMA_MODEL": "minimax-2.7:cloud",
+  "LMSTUDIO_BASE_URL": "http://host.docker.internal:1234",
+  "LMSTUDIO_MODEL": "local-model",
+  "GEMINI_API_KEY": "",
+  "OPENAI_API_KEY": "",
+  "ANTHROPIC_API_KEY": "",
+  "GROQ_API_KEY": "",
+  "STT_PROVIDER": "webspeech",
+  "WHISPER_URL": "http://localhost:9000",
+  "KOKORO_URL": "http://kokoro:8880",
+  "KOKORO_VOICE": "af_bella"
+}
