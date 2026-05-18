@@ -13,6 +13,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import useAppStore from '../store/appStore.js';
 import { send, onMessage } from '../lib/wsClient.js';
 import useAudio from './useAudio.js';
+import useSpeechSynthesis from './useSpeechSynthesis.js';
 
 const AUDIO_REVEAL_FALLBACK_MS = 15000;
 const THINKING_MESSAGES = [
@@ -52,6 +53,7 @@ export default function useConversation() {
 
   const [assistantPhase, setAssistantPhase] = useState(null);
   const { playAudio } = useAudio();
+  const speechSynthesis = useSpeechSynthesis();
 
   const isConnected = wsStatus === 'connected';
   const pendingResponseRef = useRef('');
@@ -157,9 +159,18 @@ export default function useConversation() {
           });
           break;
 
-        case 'audio-unavailable':
-          revealPendingResponse();
+        case 'audio-unavailable': {
+          const text = pendingResponseRef.current.trim();
+          if (text && speechSynthesis.isSupported) {
+            revealPendingResponse(undefined, { preservePhase: true });
+            speechSynthesis.speak(text, {
+              onEnd: () => setAssistantPhase(null),
+            });
+          } else {
+            revealPendingResponse();
+          }
           break;
+        }
 
         case 'error':
           console.error('[useConversation] Server error:', data.message);
@@ -177,7 +188,7 @@ export default function useConversation() {
       clearRevealTimer();
       unsubscribe();
     };
-  }, [addMessage, playAudio, revealPendingResponse, resetPendingResponse, clearRevealTimer]);
+  }, [addMessage, playAudio, speechSynthesis, revealPendingResponse, resetPendingResponse, clearRevealTimer]);
 
   /**
    * Send a user message through WebSocket.

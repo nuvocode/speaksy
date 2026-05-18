@@ -17,7 +17,7 @@ COPY --from=frontend-builder /frontend/dist ./public
 # Default environment values — overridden by docker run -e or env_file
 ENV PORT=3001 \
     AI_PROVIDER=ollama \
-    STT_PROVIDER=whisper \
+    STT_PROVIDER=webspeech \
     OLLAMA_BASE_URL=http://host.docker.internal:11434 \
     OLLAMA_MODEL=llama3.2 \
     LMSTUDIO_BASE_URL=http://host.docker.internal:1234 \
