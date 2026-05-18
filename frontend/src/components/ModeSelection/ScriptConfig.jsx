@@ -5,7 +5,7 @@
  * @param {{ onConfigChange: function(scriptConfig) }} props
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SCRIPTS } from '../../data/scripts.js';
 
 const CUSTOM_SCRIPTS_KEY = 'speaksy-custom-scripts';
@@ -62,6 +62,11 @@ const DIFFICULTY_LABELS = {
   intermediate: 'Intermediate',
   advanced: 'Advanced',
 };
+
+const MARKETPLACE_URL =
+  typeof import.meta !== 'undefined' && import.meta.env?.VITE_MARKETPLACE_URL
+    ? import.meta.env.VITE_MARKETPLACE_URL
+    : 'https://speaksy.nuvo.page/marketplace/index.json';
 
 const styles = {
   container: {
@@ -300,6 +305,104 @@ const styles = {
     fontSize: '9px',
     letterSpacing: '0.08em',
   },
+  marketplaceModal: {
+    backgroundColor: 'var(--color-s1)',
+    border: '1px solid var(--color-b2)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 'var(--space-6)',
+    width: '100%',
+    maxWidth: '52vw',
+    maxHeight: '80vh',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-4)',
+    boxShadow: '0 24px 48px rgba(0,0,0,.25)',
+  },
+  marketplaceBody: {
+    flex: 1,
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-3)',
+  },
+  marketplaceCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-2)',
+    padding: 'var(--space-4)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-b2)',
+    backgroundColor: 'var(--color-s2)',
+  },
+  marketplaceCardFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 'var(--space-1)',
+  },
+  tagChip: {
+    display: 'inline-flex',
+    padding: '2px 6px',
+    borderRadius: 'var(--radius-sm)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '8px',
+    color: 'var(--color-t4)',
+    backgroundColor: 'var(--color-s3)',
+    border: '1px solid var(--color-b2)',
+    letterSpacing: '0.04em',
+  },
+  importedBtn: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-xs)',
+    fontWeight: 'var(--weight-medium)',
+    color: 'var(--color-green)',
+    backgroundColor: 'rgba(74,222,128,.08)',
+    border: '1px solid rgba(74,222,128,.2)',
+    borderRadius: 'var(--radius-md)',
+    padding: '4px 10px',
+    minHeight: 'auto',
+    cursor: 'default',
+  },
+  importBtn: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-xs)',
+    fontWeight: 'var(--weight-medium)',
+    color: 'var(--color-purple)',
+    backgroundColor: 'rgba(168,85,247,.08)',
+    border: '1px solid rgba(168,85,247,.2)',
+    borderRadius: 'var(--radius-md)',
+    padding: '4px 10px',
+    minHeight: 'auto',
+    cursor: 'pointer',
+    transition: 'background-color 150ms',
+  },
+  modalCloseBtn: {
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-t3)',
+    background: 'transparent',
+    border: 'none',
+    minHeight: 'auto',
+    minWidth: 'auto',
+    cursor: 'pointer',
+    padding: '2px 6px',
+    lineHeight: 1,
+  },
+  skeletonCard: {
+    height: 90,
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-b2)',
+    background: 'linear-gradient(90deg, var(--color-s2) 25%, var(--color-s3) 50%, var(--color-s2) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  },
+  marketplaceFooterRow: {
+    flexShrink: 0,
+    borderTop: '1px solid var(--color-b1)',
+    paddingTop: 'var(--space-3)',
+    display: 'flex',
+    justifyContent: 'center',
+  },
 };
 
 export default function ScriptConfig({ onConfigChange }) {
@@ -309,6 +412,14 @@ export default function ScriptConfig({ onConfigChange }) {
   const [importError, setImportError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
+
+  const [marketplaceOpen, setMarketplaceOpen] = useState(false);
+  const [marketplaceItems, setMarketplaceItems] = useState([]);
+  const [marketplaceLoading, setMarketplaceLoading] = useState(false);
+  const [marketplaceError, setMarketplaceError] = useState('');
+  const [importedIds, setImportedIds] = useState(
+    () => new Set(loadCustomScripts().map((s) => s.id))
+  );
 
   const allScripts = [...customScripts, ...SCRIPTS];
 
@@ -350,6 +461,34 @@ export default function ScriptConfig({ onConfigChange }) {
       }
     };
     reader.readAsText(file);
+  };
+
+  const openMarketplace = async () => {
+    setMarketplaceOpen(true);
+    setMarketplaceError('');
+    setMarketplaceLoading(true);
+    try {
+      const res = await fetch(MARKETPLACE_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!validateScripts(data)) throw new Error('Invalid marketplace data format.');
+      setMarketplaceItems(data);
+    } catch (err) {
+      setMarketplaceError(err.message || 'Failed to load marketplace.');
+    } finally {
+      setMarketplaceLoading(false);
+    }
+  };
+
+  const handleMarketplaceImport = (script) => {
+    const existing = loadCustomScripts();
+    const merged = [
+      ...existing.filter((s) => s.id !== script.id),
+      { ...script, _imported: true, _source: 'marketplace' },
+    ];
+    saveCustomScripts(merged);
+    setCustomScripts(merged);
+    setImportedIds((prev) => new Set([...prev, script.id]));
   };
 
   const handleDropZoneClick = () => fileInputRef.current?.click();
@@ -417,6 +556,81 @@ export default function ScriptConfig({ onConfigChange }) {
         </div>
       )}
 
+      {marketplaceOpen && (
+        <div style={styles.backdrop} onClick={() => setMarketplaceOpen(false)}>
+          <div style={styles.marketplaceModal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.sectionLabelRow}>
+              <span style={styles.modalTitle}>Marketplace</span>
+              <button style={styles.modalCloseBtn} onClick={() => setMarketplaceOpen(false)}>✕</button>
+            </div>
+
+            <div style={styles.marketplaceBody}>
+              {marketplaceLoading && [0, 1, 2].map((i) => (
+                <div key={i} style={styles.skeletonCard} />
+              ))}
+
+              {marketplaceError && !marketplaceLoading && (
+                <div style={{ ...styles.errorMsg, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {marketplaceError}
+                  <button style={styles.sampleBtn} onClick={openMarketplace}>Retry</button>
+                </div>
+              )}
+
+              {!marketplaceLoading && !marketplaceError && marketplaceItems.map((script) => {
+                const isImported = importedIds.has(script.id);
+                const diff = DIFFICULTY_COLORS[script.difficulty] || DIFFICULTY_COLORS.beginner;
+                return (
+                  <div key={script.id} style={styles.marketplaceCard}>
+                    <div style={styles.scriptHeader}>
+                      <span style={styles.scriptTitle}>{script.title}</span>
+                      <div style={styles.scriptMeta}>
+                        {script.difficulty && (
+                          <span style={{ ...styles.badge, color: diff.color, backgroundColor: diff.bg, borderColor: diff.border }}>
+                            {DIFFICULTY_LABELS[script.difficulty] ?? script.difficulty}
+                          </span>
+                        )}
+                        {script.estimatedMinutes && (
+                          <span style={styles.duration}>~{script.estimatedMinutes}m</span>
+                        )}
+                      </div>
+                    </div>
+                    <span style={styles.scriptDescription}>{script.description}</span>
+                    {script.author && (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-t4)' }}>
+                        by {script.author}
+                      </span>
+                    )}
+                    {script.tags?.length > 0 && (
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {script.tags.map((tag) => <span key={tag} style={styles.tagChip}>{tag}</span>)}
+                      </div>
+                    )}
+                    <div style={styles.marketplaceCardFooter}>
+                      <span style={{ ...styles.duration, fontSize: '9px' }}>{script.lines.length} lines</span>
+                      {isImported
+                        ? <span style={styles.importedBtn}>Imported ✓</span>
+                        : <button style={styles.importBtn} onClick={() => handleMarketplaceImport(script)}>Import</button>
+                      }
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={styles.marketplaceFooterRow}>
+              <a
+                href="https://speaksy.nuvo.page/marketplace"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontFamily: 'var(--font-ui)', fontSize: 'var(--text-xs)', color: 'var(--color-purple)' }}
+              >
+                Browse at speaksy.nuvo.page/marketplace →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.sectionLabelRow}>
         <span style={styles.sectionLabel}>Choose a script</span>
         <div style={styles.importButtonContainer}>
@@ -436,7 +650,7 @@ export default function ScriptConfig({ onConfigChange }) {
           <a
             href='javascript:;'
             style={styles.importIconBtn}
-            onClick={() => { alert('Coming Soon!'); }}
+            onClick={openMarketplace}
             title="Import scripts from Marketplace"
             aria-label="Import scripts"
           >
